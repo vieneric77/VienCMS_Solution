@@ -29,6 +29,7 @@ namespace CMS.Backend.Controllers
 
             return View(posts);
         }
+
         public IActionResult Details(int id)
         {
             var post = _context.Posts

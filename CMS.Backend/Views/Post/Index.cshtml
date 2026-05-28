@@ -18,6 +18,8 @@
                              onerror="this.src='https://picsum.photos/400/250';">
 
                         <div class="card-body d-flex flex-column">
+                            <span class="badge bg-info text-dark align-self-start mb-2">@(item.Category?.Name ?? "Chưa phân loại")</span>
+
                             <h5 class="card-title text-primary font-weight-bold">@item.Title</h5>
 
                             <p class="card-text text-secondary text-truncate" style="max-height: 50px;">
@@ -39,3 +41,4 @@
             </div>
         }
     </div>
+</div>

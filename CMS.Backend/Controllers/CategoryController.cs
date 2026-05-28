@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CMS.Data;
 using System.Linq;
+using CMS.Data.Entities;
 
 namespace CMS.Backend.Controllers
 {
@@ -8,18 +9,61 @@ namespace CMS.Backend.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        // Tiêm DbContext vào Constructor để kết nối Database máy nhà
         public CategoryController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // Action hiển thị danh sách bài tập 3
         public IActionResult Index()
         {
-            // Thay .Categories bằng tên thuộc tính DbSet tương ứng trong DbContext của bạn (ví dụ: CategoriesProducts)
             var categories = _context.Categories.ToList();
             return View(categories);
+        }
+
+        [HttpGet]
+        public IActionResult Create()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public IActionResult Create(Category model)
+        {
+            _context.Categories.Add(model);
+            _context.SaveChanges();
+            return RedirectToAction("Index");
+        }
+
+        [HttpPost]
+        public IActionResult Delete(int id)
+        {
+            var category = _context.Categories.Find(id);
+
+            if (category != null)
+            {
+                _context.Categories.Remove(category);
+                _context.SaveChanges();
+            }
+
+            return RedirectToAction("Index");
+        }
+
+        [HttpGet]
+        public IActionResult Edit(int id)
+        {
+            var category = _context.Categories.Find(id);
+
+            if (category == null) return NotFound();
+
+            return View(category);
+        }
+
+        [HttpPost]
+        public IActionResult Edit(Category model)
+        {
+            _context.Categories.Update(model);
+            _context.SaveChanges();
+            return RedirectToAction("Index");
         }
     }
 }

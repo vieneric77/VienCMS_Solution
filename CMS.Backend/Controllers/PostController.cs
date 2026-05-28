@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using CMS.Data; // Để nhận diện ApplicationDbContext
+using CMS.Data;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMS.Backend.Controllers
 {
@@ -8,20 +9,38 @@ namespace CMS.Backend.Controllers
     {
         private readonly ApplicationDbContext _context;
 
-        // "Tiêm" kết nối Database vào Constructor
         public PostController(ApplicationDbContext context)
         {
             _context = context;
         }
 
-        // Action hiển thị danh sách bài viết
-        public IActionResult Index()
+        public IActionResult Index(int? id)
         {
-            // Lấy toàn bộ danh sách bài viết từ SQL Server
-            var listPost = _context.Posts.ToList();
+            if (id == null)
+            {
+                return BadRequest("Vui lòng cung cấp mã danh mục.");
+            }
 
-            // Truyền danh sách bài viết sang View hiển thị
-            return View(listPost);
+            var posts = _context.Posts
+                .Where(p => p.CategoryId == id)
+                .OrderByDescending(p => p.CreatedDate)
+                .Include(p => p.Category)
+                .ToList();
+
+            return View(posts);
+        }
+        public IActionResult Details(int id)
+        {
+            var post = _context.Posts
+                .Include(p => p.Category)
+                .FirstOrDefault(p => p.Id == id);
+
+            if (post == null)
+            {
+                return NotFound();
+            }
+
+            return View(post);
         }
     }
 }

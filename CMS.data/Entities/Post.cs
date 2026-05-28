@@ -8,6 +8,8 @@ namespace CMS.Data.Entities
         public string Title { get; set; }
         public string Content { get; set; }
         public string ImageUrl { get; set; }
-        public DateTime CreatedDate { get; set; } = DateTime.Now; 
+        public DateTime CreatedDate { get; set; } = DateTime.Now;
+        public int CategoryId { get; set; }
+        public Category Category { get; set; }
     }
 }

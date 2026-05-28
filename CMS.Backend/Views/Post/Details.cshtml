@@ -1,0 +1,19 @@
+﻿@model CMS.Data.Entities.Post
+@{
+    Layout = "_LayoutAdmin"; ViewData["Title"] = "Chi tiết bài viết";
+}
+
+<div class="container mt-4">
+    <div class="card shadow">
+        <div class="card-header bg-info text-white"><h4>@Model.Title</h4></div>
+        <div class="card-body">
+            <img src="@Model.ImageUrl" class="img-fluid mb-3" style="max-height:300px;" />
+            <div class="post-content">
+                @Html.Raw(Model.Content)
+            </div>
+        </div>
+        <div class="card-footer">
+            <a asp-action="Index" class="btn btn-secondary">Quay lại</a>
+        </div>
+    </div>
+</div>

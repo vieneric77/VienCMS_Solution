@@ -1,7 +1,9 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using CMS.Data;
-var builder = WebApplication.CreateBuilder(args);
+// Thêm namespace này để dùng được CookieAuthenticationDefaults
+using Microsoft.AspNetCore.Authentication.Cookies;
 
+var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddControllersWithViews();
@@ -10,8 +12,18 @@ builder.Services.AddControllersWithViews();
 builder.Services.AddDbContext<ApplicationDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-var app = builder.Build();
+// =========================================================================
+// CHÈN TẠI ĐÂY: Trước dòng var app = builder.Build();
+// 1. Khai báo dịch vụ xác thực Cookie
+builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+    .AddCookie(options =>
+    {
+        options.LoginPath = "/Account/Login"; // Đường dẫn nếu chưa đăng nhập
+        options.AccessDeniedPath = "/Account/AccessDenied"; // Đường dẫn nếu vào trang không được phép
+    });
+// =========================================================================
 
+var app = builder.Build();
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -26,7 +38,11 @@ app.UseStaticFiles();
 
 app.UseRouting();
 
-app.UseAuthorization();
+// =========================================================================
+// CHÈN TẠI ĐÂY: Ngay trước app.UseAuthorization();
+app.UseAuthentication(); // BƯỚC A: Xác nhận "Anh là ai?" (Kiểm tra thẻ bài)
+// =========================================================================
+app.UseAuthorization();  // BƯỚC B: Xác nhận "Anh được làm gì?" (Kiểm tra quyền)
 
 app.MapControllerRoute(
     name: "default",

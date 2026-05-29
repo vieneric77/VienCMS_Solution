@@ -22,8 +22,25 @@ builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationSc
         options.AccessDeniedPath = "/Account/AccessDenied"; // Đường dẫn nếu vào trang không được phép
     });
 // =========================================================================
-
+// Đăng ký dịch vụ Swagger vào hệ thống
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+// 1. Khai báo chính sách CORS
+builder.Services.AddCors(options => {
+    options.AddPolicy("AllowAll", policy => {
+        // Cho phép mọi nguồn (Origin), mọi phương thức (GET, POST...), mọi tiêu đề (Header)
+        policy.AllowAnyOrigin()
+              .AllowAnyMethod()
+              .AllowAnyHeader();
+    });
+});
 var app = builder.Build();
+// Kích hoạt Swagger UI cho cả môi trường Development và Production để dễ kiểm thử
+app.UseSwagger();
+app.UseSwaggerUI(c =>
+{
+    c.SwaggerEndpoint("/swagger/v1/swagger.json", "CMS API v1");
+});
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
@@ -37,6 +54,7 @@ app.UseHttpsRedirection();
 app.UseStaticFiles();
 
 app.UseRouting();
+app.UseCors("AllowAll");
 
 // =========================================================================
 // CHÈN TẠI ĐÂY: Ngay trước app.UseAuthorization();

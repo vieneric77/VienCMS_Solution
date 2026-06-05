@@ -1,15 +1,15 @@
-﻿@model List<CMS.Data.Entities.Product>
+﻿@model List<CMS.Data.Entities.CategoryProduct>
 
 @{
     Layout = "_LayoutAdmin";
-    ViewData["Title"] = "Quản lý sản phẩm";
+    ViewData["Title"] = "Danh mục sản phẩm";
 }
 
 <div class="container mt-4">
     <div class="d-flex justify-content-between align-items-center mb-4">
-        <h3 class="text-danger font-weight-bold m-0 text-uppercase">Bài Tập 4: Liệt Kê Danh Sách Products</h3>
+        <h3 class="text-danger font-weight-bold m-0 text-uppercase">Danh Sách Danh Mục Sản Phẩm</h3>
         <a asp-action="Create" class="btn btn-success">
-            <i class="bi bi-plus-circle"></i> Thêm sản phẩm mới
+            <i class="bi bi-plus-circle"></i> Thêm danh mục mới
         </a>
     </div>
 
@@ -18,12 +18,9 @@
             <table class="table table-bordered table-striped table-hover align-middle mb-0 bg-white">
                 <thead class="table-primary text-dark">
                     <tr>
-                        <th style="width: 80px;" class="text-center">ID</th>
-                        <th style="width: 100px;" class="text-center">Hình Ảnh</th>
-                        <th style="width: 250px;">Tên Sản Phẩm</th>
-                        <th>Mô Tả Sản Phẩm</th>
-                        <th style="width: 140px;" class="text-end">Giá Bán</th>
-                        <th style="width: 100px;" class="text-center">Tồn Kho</th>
+                        <th style="width: 100px;" class="text-center">Mã ID</th>
+                        <th>Tên Danh Mục Sản Phẩm</th>
+                        <th>Mô Tả Danh Mục</th>
                         <th class="text-center" style="width: 180px;">Thao Tác</th>
                     </tr>
                 </thead>
@@ -34,17 +31,8 @@
                         {
                             <tr>
                                 <td class="text-center font-weight-bold">@item.Id</td>
-                                <td class="text-center">
-                                    <img src="@item.ImageUrl" alt="product-img" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;" onError="this.src='https://placehold.co/60'">
-                                </td>
                                 <td class="font-weight-bold text-primary">@item.Name</td>
-                                <td class="text-muted text-truncate" style="max-width: 300px;">@item.Description</td>
-                                <td class="text-end text-danger font-weight-bold">@item.Price.ToString("N0") đ</td>
-                                <td class="text-center">
-                                    <span class="badge @(item.StockQuantity > 10 ? "bg-success" : "bg-warning")">
-                                        @item.StockQuantity
-                                    </span>
-                                </td>
+                                <td class="text-muted">@item.Description</td>
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1">
                                         <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
@@ -53,7 +41,7 @@
 
                                         <a asp-action="Delete" asp-route-id="@item.Id"
                                            class="btn btn-sm btn-outline-danger"
-                                           onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?')">
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa danh mục sản phẩm này không?')">
                                             <i class="bi bi-trash"></i> Xóa
                                         </a>
                                     </div>
@@ -64,8 +52,8 @@
                     else
                     {
                         <tr>
-                            <td colspan="7" class="text-center text-muted py-4">
-                                Chưa có dữ liệu sản phẩm nào. Hãy kiểm tra lại hoặc thêm sản phẩm mới!
+                            <td colspan="4" class="text-center text-muted py-4">
+                                Chưa có dữ liệu danh mục sản phẩm nào trong hệ thống!
                             </td>
                         </tr>
                     }

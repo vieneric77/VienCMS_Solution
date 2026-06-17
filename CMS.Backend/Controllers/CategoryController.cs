@@ -2,12 +2,13 @@
 using CMS.Data;
 using System.Linq;
 using CMS.Data.Entities;
-using Microsoft.AspNetCore.Authorization; 
 
 namespace CMS.Backend.Controllers
 {
-    [Authorize] 
-    public class CategoryController : Controller
+    [Route("api/Categories")] // Khớp với url = '/Categories' bên Frontend
+    [ApiController]
+    [Tags("Categories")]
+    public class CategoryController : ControllerBase // Đổi sang ControllerBase để làm API
     {
         private readonly ApplicationDbContext _context;
 
@@ -16,56 +17,55 @@ namespace CMS.Backend.Controllers
             _context = context;
         }
 
+        // GET: api/Categories
+        [HttpGet]
         public IActionResult Index()
         {
             var categories = _context.Categories.ToList();
-            return View(categories);
+            return Ok(categories); // Trả về JSON chuẩn cho ReactJS bóc tách
         }
 
-        [HttpGet]
-        public IActionResult Create()
+        // GET: api/Categories/5
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
         {
-            return View();
+            var category = _context.Categories.Find(id);
+            if (category == null) return NotFound(new { message = "Không tìm thấy." });
+            return Ok(category);
         }
 
+        // POST: api/Categories
         [HttpPost]
         public IActionResult Create(Category model)
         {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
             _context.Categories.Add(model);
             _context.SaveChanges();
-            return RedirectToAction("Index");
+            return Ok(model);
         }
 
-        [HttpPost]
+        // PUT: api/Categories
+        [HttpPut]
+        public IActionResult Edit(Category model)
+        {
+            if (!ModelState.IsValid) return BadRequest(ModelState);
+
+            _context.Categories.Update(model);
+            _context.SaveChanges();
+            return Ok(new { message = "Cập nhật thành công.", data = model });
+        }
+
+        // DELETE: api/Categories/5
+        [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             var category = _context.Categories.Find(id);
+            if (category == null) return NotFound(new { message = "Không tìm thấy để xóa." });
 
-            if (category != null)
-            {
-                _context.Categories.Remove(category);
-                _context.SaveChanges();
-            }
-
-            return RedirectToAction("Index");
-        }
-
-        [HttpGet]
-        public IActionResult Edit(int id)
-        {
-            var category = _context.Categories.Find(id);
-
-            if (category == null) return NotFound();
-
-            return View(category);
-        }
-
-        [HttpPost]
-        public IActionResult Edit(Category model)
-        {
-            _context.Categories.Update(model);
+            _context.Categories.Remove(category);
             _context.SaveChanges();
-            return RedirectToAction("Index");
+            return Ok(new { message = "Xóa thành công." });
         }
     }
 }

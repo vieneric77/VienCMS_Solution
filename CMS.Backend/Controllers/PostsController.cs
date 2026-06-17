@@ -1,5 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CMS.Data;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMS.Backend.Controllers
 {
@@ -17,14 +19,19 @@ namespace CMS.Backend.Controllers
         [HttpGet]
         public IActionResult GetAll()
         {
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
             var posts = _context.Posts
+                .Include(p => p.Category)
                 .OrderByDescending(p => p.Id)
                 .Select(p => new {
                     p.Id,
                     p.Title,
-                    p.ImageUrl,
+                    p.Content,
                     p.CreatedDate,
-                    CategoryName = p.Category.Name
+                    p.CategoryId,
+                    CategoryName = p.Category != null ? p.Category.Name : "Chưa phân loại",
+                    ImageUrl = !string.IsNullOrEmpty(p.ImageUrl) ? baseUrl + p.ImageUrl : "https://picsum.photos/400/250"
                 })
                 .ToList();
 
@@ -34,13 +41,16 @@ namespace CMS.Backend.Controllers
         [HttpGet("category/{categoryId}")]
         public IActionResult GetByCategory(int categoryId)
         {
+            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+
             var posts = _context.Posts
                 .Where(p => p.CategoryId == categoryId)
                 .Select(p => new {
                     p.Id,
                     p.Title,
-                    p.ImageUrl,
-                    p.CreatedDate
+                    p.Content,
+                    p.CreatedDate,
+                    ImageUrl = !string.IsNullOrEmpty(p.ImageUrl) ? baseUrl + p.ImageUrl : "https://picsum.photos/400/250"
                 })
                 .ToList();
 

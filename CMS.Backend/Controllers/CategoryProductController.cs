@@ -2,10 +2,14 @@
 using CMS.Data;
 using CMS.Data.Entities;
 using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMS.Backend.Controllers
 {
-    public class ProductCategoryController : Controller
+    [Route("api/CategoriesProducts")]
+    [ApiController]
+    [Tags("CategoriesProducts")] 
+    public class ProductCategoryController : ControllerBase
     {
         private readonly ApplicationDbContext _context;
 
@@ -18,90 +22,91 @@ namespace CMS.Backend.Controllers
         public IActionResult Index()
         {
             var categories = _context.CategoriesProducts.OrderByDescending(c => c.Id).ToList();
-            return View(categories);
+            return Ok(categories);
         }
 
-        [HttpGet]
-        public IActionResult Create()
-        {
-            return View();
-        }
-
-        [HttpPost]
-        [ValidateAntiForgeryToken]
-        public IActionResult Create(CategoryProduct model)
-        {
-            if (ModelState.IsValid)
-            {
-                var newCategory = new CategoryProduct
-                {
-                    Name = model.Name,
-                    Description = model.Description
-                };
-
-                _context.CategoriesProducts.Add(newCategory);
-                _context.SaveChanges();
-                return RedirectToAction(nameof(Index));
-            }
-            return View(model);
-        }
-
-        [HttpGet]
-        public IActionResult Edit(int id)
+        [HttpGet("{id}")]
+        public IActionResult GetById(int id)
         {
             var category = _context.CategoriesProducts.FirstOrDefault(c => c.Id == id);
             if (category == null)
             {
-                return NotFound();
+                return NotFound(new { message = "Không tìm thấy danh mục này." });
             }
-            return View(category);
+            return Ok(category);
         }
 
         [HttpPost]
-        [ValidateAntiForgeryToken]
+        public IActionResult Create(CategoryProduct model)
+        {
+            ModelState.Remove("Products");
+
+            if (!ModelState.IsValid)
+            {
+                return BadRequest(ModelState);
+            }
+
+            var newCategory = new CategoryProduct
+            {
+                Name = model.Name,
+                Description = model.Description
+            };
+
+            _context.CategoriesProducts.Add(newCategory);
+            _context.SaveChanges();
+
+            return CreatedAtAction(nameof(GetById), new { id = newCategory.Id }, newCategory);
+        }
+
+        [HttpPut("{id}")]
         public IActionResult Edit(int id, CategoryProduct model)
         {
             if (id != model.Id)
             {
-                return BadRequest();
+                return BadRequest(new { message = "ID không trùng khớp." });
             }
 
-            if (ModelState.IsValid)
+            ModelState.Remove("Products");
+
+            if (!ModelState.IsValid)
             {
-                var category = _context.CategoriesProducts.FirstOrDefault(c => c.Id == id);
-                if (category == null)
-                {
-                    return NotFound();
-                }
-
-                category.Name = model.Name;
-                category.Description = model.Description;
-
-                _context.CategoriesProducts.Update(category);
-                _context.SaveChanges();
-                return RedirectToAction(nameof(Index));
+                return BadRequest(ModelState);
             }
-            return View(model);
+
+            var category = _context.CategoriesProducts.FirstOrDefault(c => c.Id == id);
+            if (category == null)
+            {
+                return NotFound(new { message = "Không tìm thấy danh mục cần sửa." });
+            }
+
+            category.Name = model.Name;
+            category.Description = model.Description;
+
+            _context.CategoriesProducts.Update(category);
+            _context.SaveChanges();
+
+            return Ok(new { message = "Cập nhật danh mục thành công.", data = category });
         }
 
-        [HttpGet]
+        [HttpDelete("{id}")]
         public IActionResult Delete(int id)
         {
             var category = _context.CategoriesProducts.FirstOrDefault(c => c.Id == id);
             if (category == null)
             {
-                return NotFound();
+                return NotFound(new { message = "Không tìm thấy danh mục cần xóa." });
             }
 
             var hasProducts = _context.Products.Any(p => p.CategoryProductId == id);
             if (hasProducts)
             {
-                return BadRequest("Không thể xóa danh mục này vì đang có sản phẩm thuộc về nó");
+                return BadRequest(new { message = "Không thể xóa danh mục này vì đang có sản phẩm thuộc về nó." });
             }
 
             _context.CategoriesProducts.Remove(category);
             _context.SaveChanges();
-            return RedirectToAction(nameof(Index));
+
+            return Ok(new { message = "Xóa danh mục thành công." });
         }
     }
 }

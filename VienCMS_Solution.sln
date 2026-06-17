@@ -7,7 +7,7 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMS.data", "CMS.data\CMS.da
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CMS.Backend", "CMS.Backend\CMS.Backend.csproj", "{813A7F23-DB46-4086-BB9C-1E64899B5C52}"
 EndProject
-Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "cms.frontend", "cms.frontend\", "{0F1D08D1-CDE1-474F-93BB-229211E8E8A3}"
+Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "cms.frontend", "cms.frontend\", "{BFC96697-7D92-84DD-AB7A-313652811C56}"
 	ProjectSection(WebsiteProperties) = preProject
 		TargetFrameworkMoniker = ".NETFramework,Version%3Dv4.8"
 		Debug.AspNetCompiler.VirtualPath = "/localhost_49612"
@@ -25,7 +25,6 @@ Project("{E24C65DC-7377-472B-9ABA-BC803B73C61A}") = "cms.frontend", "cms.fronten
 		Release.AspNetCompiler.FixedNames = "false"
 		Release.AspNetCompiler.Debug = "False"
 		VWDPort = "49612"
-		SlnRelativePath = "cms.frontend\"
 	EndProjectSection
 EndProject
 Global
@@ -42,10 +41,10 @@ Global
 		{813A7F23-DB46-4086-BB9C-1E64899B5C52}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{813A7F23-DB46-4086-BB9C-1E64899B5C52}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{813A7F23-DB46-4086-BB9C-1E64899B5C52}.Release|Any CPU.Build.0 = Release|Any CPU
-		{0F1D08D1-CDE1-474F-93BB-229211E8E8A3}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F1D08D1-CDE1-474F-93BB-229211E8E8A3}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{0F1D08D1-CDE1-474F-93BB-229211E8E8A3}.Release|Any CPU.ActiveCfg = Debug|Any CPU
-		{0F1D08D1-CDE1-474F-93BB-229211E8E8A3}.Release|Any CPU.Build.0 = Debug|Any CPU
+		{BFC96697-7D92-84DD-AB7A-313652811C56}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFC96697-7D92-84DD-AB7A-313652811C56}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{BFC96697-7D92-84DD-AB7A-313652811C56}.Release|Any CPU.ActiveCfg = Debug|Any CPU
+		{BFC96697-7D92-84DD-AB7A-313652811C56}.Release|Any CPU.Build.0 = Debug|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

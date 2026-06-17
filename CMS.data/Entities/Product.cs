@@ -11,5 +11,6 @@ namespace CMS.Data.Entities
         public int StockQuantity { get; set; }
         public string ImageUrl { get; set; }
         public int CategoryProductId { get; set; } 
+
     }
 }

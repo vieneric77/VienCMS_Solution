@@ -38,7 +38,11 @@
                                     <img src="@item.ImageUrl" alt="product-img" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;" onError="this.src='https://placehold.co/60'">
                                 </td>
                                 <td class="font-weight-bold text-primary">@item.Name</td>
-                                <td class="text-muted text-truncate" style="max-width: 300px;">@item.Description</td>
+                                <td>
+                                    <div class="text-muted text-truncate" style="max-width: 380px;">
+                                        @Html.Raw(item.Description)
+                                    </div>
+                                </td>
                                 <td class="text-end text-danger font-weight-bold">@item.Price.ToString("N0") đ</td>
                                 <td class="text-center">
                                     <span class="badge @(item.StockQuantity > 10 ? "bg-success" : "bg-warning")">

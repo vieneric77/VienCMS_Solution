@@ -1,14 +1,11 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using CMS.Data;
-using CMS.Data.Entities;
 using System.Linq;
-using CMS.Backend.DTO;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMS.Backend.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class CustomerController : ControllerBase
+    public class CustomerController : Controller
     {
         private readonly ApplicationDbContext _context;
 
@@ -17,103 +14,48 @@ namespace CMS.Backend.Controllers
             _context = context;
         }
 
-        // 1. API Lấy toàn bộ danh sách khách hàng
-        [HttpGet]
-        public IActionResult GetAll()
+        public IActionResult Index(string searchString)
         {
-            var customers = _context.Customers
-                .OrderByDescending(c => c.Id)
-                .Select(c => new {
-                    c.Id,
-                    c.FullName,
-                    c.Email,
-                    c.Phone,
-                    c.Address
-                })
-                .ToList();
+            var customers = _context.Customers.AsQueryable();
 
-            return Ok(customers);
-        }
-
-        // 2. API Xem chi tiết thông tin một khách hàng theo ID
-        [HttpGet("{id}")]
-        public IActionResult GetDetail(int id)
-        {
-            var customer = _context.Customers
-                .Where(c => c.Id == id)
-                .Select(c => new {
-                    c.Id,
-                    c.FullName,
-                    c.Email,
-                    c.Phone,
-                    c.Address
-                })
-                .FirstOrDefault();
-
-            if (customer == null)
+            if (!string.IsNullOrEmpty(searchString))
             {
-                return NotFound(new { message = "Không tìm thấy thông tin khách hàng yêu cầu" });
+                customers = customers.Where(c => c.FullName.Contains(searchString) || c.Email.Contains(searchString));
             }
 
-            return Ok(customer);
+            return View(customers.ToList());
         }
 
-        // 3. API Đăng ký / Thêm mới tài khoản khách hàng
+        public IActionResult Edit(int id)
+        {
+            var customer = _context.Customers.Find(id);
+            return View(customer);
+        }
+
         [HttpPost]
-        public IActionResult Create([FromBody] Customer model)
+        public IActionResult Edit(CMS.Data.Entities.Customer customer)
         {
-            // Kiểm tra ràng buộc duy nhất: Tránh việc đăng ký trùng lặp Email trên hệ thống
-            var isEmailExist = _context.Customers.Any(c => c.Email == model.Email);
-            if (isEmailExist)
-            {
-                return BadRequest(new { message = "Email này đã được sử dụng để đăng ký tài khoản" });
-            }
-
-            var newCustomer = new Customer
-            {
-                FullName = model.FullName,
-                Email = model.Email,
-                Phone = model.Phone,
-                Address = model.Address,
-                Password = model.Password // Lưu ý: Trong thực tế dự án lớn cần mã hóa mật khẩu trước khi lưu
-            };
-
-            _context.Customers.Add(newCustomer);
+            _context.Customers.Update(customer);
             _context.SaveChanges();
-
-            // Trả về mã thành công 201 kèm thông tin sạch (ẩn mật khẩu)
-            return StatusCode(201, new
-            {
-                newCustomer.Id,
-                newCustomer.FullName,
-                newCustomer.Email,
-                newCustomer.Phone,
-                newCustomer.Address
-            });
+            return RedirectToAction(nameof(Index));
         }
 
-        // 4. API Xóa tài khoản khách hàng
-        [HttpDelete("{id}")]
+        public IActionResult Orders(int id)
+        {
+            var orders = _context.Orders.Where(o => o.CustomerId == id).ToList();
+            ViewBag.CustomerName = _context.Customers.Find(id)?.FullName;
+            return View(orders);
+        }
+
         public IActionResult Delete(int id)
         {
-            var customer = _context.Customers.FirstOrDefault(c => c.Id == id);
-
-            if (customer == null)
+            var customer = _context.Customers.Find(id);
+            if (customer != null && !_context.Orders.Any(o => o.CustomerId == id))
             {
-                return NotFound(new { message = "Tài khoản khách hàng không tồn tại" });
+                _context.Customers.Remove(customer);
+                _context.SaveChanges();
             }
-
-            // Kiểm tra toàn vẹn dữ liệu: Nếu khách hàng đã phát sinh hóa đơn mua hàng thì cấm xóa
-            var hasOrders = _context.Orders.Any(o => o.CustomerId == id);
-            if (hasOrders)
-            {
-                return BadRequest(new { message = "Không thể xóa khách hàng này vì dữ liệu đã liên kết với lịch sử đơn hàng" });
-            }
-
-            _context.Customers.Remove(customer);
-            _context.SaveChanges();
-
-            return Ok(new { message = "Xóa thông tin khách hàng thành công" });
+            return RedirectToAction(nameof(Index));
         }
     }
 }

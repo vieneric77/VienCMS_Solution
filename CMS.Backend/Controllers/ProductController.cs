@@ -13,22 +13,22 @@ namespace CMS.Backend.Controllers
     public class ProductController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _env; // Thêm biến môi trường để lấy đường dẫn wwwroot
 
-        public ProductController(ApplicationDbContext context)
+        public ProductController(ApplicationDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
 
-        [HttpGet]
+        // 1. Danh sách sản phẩm
         public IActionResult Index()
         {
-            var products = _context.Products
-                .OrderByDescending(p => p.Id)
-                .ToList();
-
+            var products = _context.Products.Include(p => p.CategoryProduct).OrderByDescending(p => p.Id).ToList();
             return View(products);
         }
 
+        // 2. Form thêm mới
         [HttpGet]
         public IActionResult Create()
         {
@@ -40,77 +40,30 @@ namespace CMS.Backend.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Product model, IFormFile? uploadImage)
         {
+            // Bỏ qua kiểm tra các trường không nhập từ form
             ModelState.Remove("uploadImage");
             ModelState.Remove("ImageUrl");
-
-            var categoryExists = _context.CategoriesProducts.Any(c => c.Id == model.CategoryProductId);
-            if (!categoryExists)
-            {
-                ModelState.AddModelError("", "Danh mục sản phẩm không tồn tại trong hệ thống");
-                ViewBag.CategoryList = new SelectList(_context.CategoriesProducts.ToList(), "Id", "Name", model.CategoryProductId);
-                return View(model);
-            }
+            ModelState.Remove("CategoryProduct");
 
             if (ModelState.IsValid)
             {
-                var newProduct = new Product
-                {
-                    Name = model.Name,
-                    Description = model.Description,
-                    Price = model.Price,
-                    StockQuantity = model.StockQuantity,
-                    CategoryProductId = model.CategoryProductId
-                };
+                if (uploadImage != null) model.ImageUrl = SaveImage(uploadImage);
+                else model.ImageUrl = "/images/products/default.jpg";
 
-                if (uploadImage != null && uploadImage.Length > 0)
-                {
-                    try
-                    {
-                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(uploadImage.FileName);
-                        var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "products");
-
-                        if (!Directory.Exists(uploadDir))
-                        {
-                            Directory.CreateDirectory(uploadDir);
-                        }
-
-                        var filePath = Path.Combine(uploadDir, fileName);
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            uploadImage.CopyTo(fileStream);
-                        }
-
-                        newProduct.ImageUrl = "/images/products/" + fileName;
-                    }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("", "Lỗi trong quá trình lưu file ảnh: " + ex.Message);
-                        ViewBag.CategoryList = new SelectList(_context.CategoriesProducts.ToList(), "Id", "Name", model.CategoryProductId);
-                        return View(model);
-                    }
-                }
-                else
-                {
-                    newProduct.ImageUrl = "/images/products/default.jpg";
-                }
-
-                _context.Products.Add(newProduct);
+                _context.Products.Add(model);
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-
             ViewBag.CategoryList = new SelectList(_context.CategoriesProducts.ToList(), "Id", "Name", model.CategoryProductId);
             return View(model);
         }
 
+        // 3. Form cập nhật
         [HttpGet]
         public IActionResult Edit(int id)
         {
-            var product = _context.Products.FirstOrDefault(p => p.Id == id);
-            if (product == null)
-            {
-                return NotFound();
-            }
+            var product = _context.Products.Find(id);
+            if (product == null) return NotFound();
 
             ViewBag.CategoryList = new SelectList(_context.CategoriesProducts.ToList(), "Id", "Name", product.CategoryProductId);
             return View(product);
@@ -120,160 +73,59 @@ namespace CMS.Backend.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Product model, IFormFile? uploadImage)
         {
-            if (id != model.Id)
-            {
-                return BadRequest();
-            }
-
             ModelState.Remove("uploadImage");
             ModelState.Remove("ImageUrl");
-
-            var categoryExists = _context.CategoriesProducts.Any(c => c.Id == model.CategoryProductId);
-            if (!categoryExists)
-            {
-                ModelState.AddModelError("", "Danh mục sản phẩm không tồn tại trong hệ thống");
-                ViewBag.CategoryList = new SelectList(_context.CategoriesProducts.ToList(), "Id", "Name", model.CategoryProductId);
-                return View(model);
-            }
+            ModelState.Remove("CategoryProduct");
 
             if (ModelState.IsValid)
             {
-                var product = _context.Products.FirstOrDefault(p => p.Id == id);
-                if (product == null)
-                {
-                    return NotFound();
-                }
-
-                if (uploadImage != null && uploadImage.Length > 0)
-                {
-                    try
-                    {
-                        var fileName = Guid.NewGuid().ToString() + Path.GetExtension(uploadImage.FileName);
-                        var uploadDir = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "images", "products");
-
-                        if (!Directory.Exists(uploadDir))
-                        {
-                            Directory.CreateDirectory(uploadDir);
-                        }
-
-                        var filePath = Path.Combine(uploadDir, fileName);
-                        using (var fileStream = new FileStream(filePath, FileMode.Create))
-                        {
-                            uploadImage.CopyTo(fileStream);
-                        }
-
-                        product.ImageUrl = "/images/products/" + fileName;
-                    }
-                    catch (Exception ex)
-                    {
-                        ModelState.AddModelError("", "Lỗi trong quá trình lưu file ảnh: " + ex.Message);
-                        ViewBag.CategoryList = new SelectList(_context.CategoriesProducts.ToList(), "Id", "Name", model.CategoryProductId);
-                        return View(model);
-                    }
-                }
-                else
-                {
-                    product.ImageUrl = model.ImageUrl;
-                }
+                var product = _context.Products.Find(id);
+                if (product == null) return NotFound();
 
                 product.Name = model.Name;
-                product.Description = model.Description;
                 product.Price = model.Price;
+                product.Description = model.Description;
                 product.StockQuantity = model.StockQuantity;
                 product.CategoryProductId = model.CategoryProductId;
 
-                _context.Products.Update(product);
+                // CHỈ CẬP NHẬT ẢNH NẾU CÓ ẢNH MỚI
+                if (uploadImage != null) product.ImageUrl = SaveImage(uploadImage);
+
                 _context.SaveChanges();
                 return RedirectToAction(nameof(Index));
             }
-
             ViewBag.CategoryList = new SelectList(_context.CategoriesProducts.ToList(), "Id", "Name", model.CategoryProductId);
             return View(model);
         }
 
-        [HttpGet]
+        // 4. Xóa
         public IActionResult Delete(int id)
         {
-            var product = _context.Products.FirstOrDefault(p => p.Id == id);
-            if (product == null)
+            var product = _context.Products.Find(id);
+            if (product != null)
             {
-                return NotFound();
+                _context.Products.Remove(product);
+                _context.SaveChanges();
             }
-
-            var isOrdered = _context.OrderDetails.Any(od => od.ProductId == id);
-            if (isOrdered)
-            {
-                return BadRequest("Không thể xóa sản phẩm vì đã tồn tại lịch sử giao dịch");
-            }
-
-            _context.Products.Remove(product);
-            _context.SaveChanges();
             return RedirectToAction(nameof(Index));
         }
 
-        [HttpGet("api/Product")]
-        public IActionResult GetAllApi()
+        // HÀM LƯU ẢNH CHUẨN XÁC
+        private string SaveImage(IFormFile image)
         {
-            var categories = _context.CategoriesProducts.ToList();
-            var baseUrl = $"{Request.Scheme}://{Request.Host}";
+            // Lấy đường dẫn wwwroot từ IWebHostEnvironment
+            var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "products");
 
-            var products = _context.Products
-                .Select(p => new {
-                    p.Id,
-                    p.Name,
-                    p.Description,
-                    p.Price,
-                    p.StockQuantity,
-                    p.ImageUrl,
-                    p.CategoryProductId
-                })
-                .ToList()
-                .Select(p => new {
-                    p.Id,
-                    p.Name,
-                    p.Description,
-                    p.Price,
-                    p.StockQuantity,
-                    ImageUrl = !string.IsNullOrEmpty(p.ImageUrl) ? baseUrl + p.ImageUrl : baseUrl + "/images/products/default.jpg",
-                    p.CategoryProductId,
-                    CategoryName = categories.FirstOrDefault(c => c.Id == p.CategoryProductId)?.Name ?? ""
-                })
-                .ToList();
+            if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
 
-            return Ok(products);
-        }
+            var fileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
+            var filePath = Path.Combine(uploadsFolder, fileName);
 
-        [HttpGet("api/Product/category/{categoryId}")]
-        public IActionResult GetByCategoryApi(int categoryId)
-        {
-            var categories = _context.CategoriesProducts.ToList();
-            var baseUrl = $"{Request.Scheme}://{Request.Host}";
-
-            var products = _context.Products
-                .Where(p => p.CategoryProductId == categoryId)
-                .Select(p => new {
-                    p.Id,
-                    p.Name,
-                    p.Description,
-                    p.Price,
-                    p.StockQuantity,
-                    p.ImageUrl,
-                    p.CategoryProductId
-                })
-                .ToList()
-                .Select(p => new {
-                    p.Id,
-                    p.Name,
-                    p.Description,
-                    p.Price,
-                    p.StockQuantity,
-                    ImageUrl = !string.IsNullOrEmpty(p.ImageUrl) ? baseUrl + p.ImageUrl : baseUrl + "/images/products/default.jpg",
-                    p.CategoryProductId,
-                    CategoryName = categories.FirstOrDefault(c => c.Id == p.CategoryProductId)?.Name ?? ""
-                })
-                .ToList();
-
-            return Ok(products);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                image.CopyTo(stream);
+            }
+            return "/images/products/" + fileName;
         }
     }
 }

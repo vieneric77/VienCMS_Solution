@@ -1,0 +1,27 @@
+﻿@model IEnumerable<CMS.Data.Entities.Order>
+
+@{
+    ViewData["Title"] = "Lịch sử đơn hàng";
+    Layout = "_LayoutAdmin";
+}
+
+<div class="container-fluid mt-4">
+    <h3>Lịch sử đơn hàng của: @ViewBag.CustomerName</h3>
+    <a asp-action="Index" class="btn btn-outline-secondary mb-3">Quay lại</a>
+    <table class="table table-bordered">
+        <thead>
+            <tr><th>ID Đơn</th><th>Ngày</th><th>Trạng thái</th><th>Ghi chú</th></tr>
+        </thead>
+        <tbody>
+            @foreach (var item in Model)
+            {
+                <tr>
+                    <td>@item.Id</td>
+                    <td>@item.OrderDate.ToString("dd/MM/yyyy")</td>
+                    <td>@item.Status</td>
+                    <td>@item.Notes</td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</div>

@@ -1,5 +1,6 @@
-﻿using Microsoft.EntityFrameworkCore;
+﻿using CMS.data.Entities;
 using CMS.Data.Entities;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMS.Data
 {
@@ -19,5 +20,6 @@ namespace CMS.Data
         public DbSet<Customer> Customers { get; set; }
         public DbSet<Order> Orders { get; set; }
         public DbSet<OrderDetail> OrderDetails { get; set; }
+        public DbSet<Banner> Banners { get; set; }
     }
 }

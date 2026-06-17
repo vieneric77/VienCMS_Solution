@@ -1,48 +1,41 @@
-﻿@model List<CMS.Data.Entities.Customer>
+﻿@model IEnumerable<CMS.Data.Entities.Customer>
+
 @{
-    ViewData["Title"] = "Danh sách khách hàng";
+    ViewData["Title"] = "Quản lý Khách hàng";
+    Layout = "_LayoutAdmin";
 }
 
-<div class="container mt-4">
-    <div class="d-flex justify-content-between align-items-center mb-3">
-        <h3 class="text-dark font-weight-bold m-0 text-uppercase">BÀI TẬP 5: LIỆT KÊ DANH SÁCH CUSTOMERS</h3>
-        <button class="btn btn-info btn-sm text-white">+ Thêm khách hàng mới</button>
-    </div>
+<div class="container-fluid mt-4">
+    <h2>Danh sách Khách hàng</h2>
+    <form method="get" class="mb-3">
+        <input type="text" name="searchString" placeholder="Tìm tên hoặc email..." class="form-control d-inline w-25" />
+        <button type="submit" class="btn btn-primary">Tìm kiếm</button>
+    </form>
 
-    <table class="table table-bordered table-striped table-hover align-middle shadow-sm bg-white">
-        <thead class="table-dark text-white">
+    <table class="table table-striped table-hover">
+        <thead class="table-dark">
             <tr>
-                <th style="width: 80px;" class="text-center">ID</th>
-                <th>Họ Và Tên</th>
+                <th>ID</th>
+                <th>Họ tên</th>
                 <th>Email</th>
-                <th style="width: 160px;">Số Điện Thoại</th>
-                <th>Địa Chỉ</th>
-                <th class="text-center" style="width: 150px;">Thao Tác</th>
+                <th>SĐT</th>
+                <th>Địa chỉ</th>
+                <th>Hành động</th>
             </tr>
         </thead>
         <tbody>
-            @if (Model != null && Model.Any())
-            {
-                foreach (var item in Model)
-                {
-                    <tr>
-                        <td class="text-center font-weight-bold text-secondary">@item.Id</td>
-                        <td class="font-weight-bold text-dark">@item.FullName</td>
-                        <td>@item.Email</td>
-                        <td class="text-primary font-weight-bold">@item.Phone</td>
-                        <td class="text-muted">@item.Address</td>
-                        <td class="text-center">
-                            <button class="btn btn-warning btn-sm py-0 px-2 text-white">Sửa</button>
-                            <button class="btn btn-danger btn-sm py-0 px-2">Xóa</button>
-                        </td>
-                    </tr>
-                }
-            }
-            else
+            @foreach (var item in Model)
             {
                 <tr>
-                    <td colspan="6" class="text-center text-muted py-3">
-                        Chưa có dữ liệu khách hàng nào.
+                    <td>@item.Id</td>
+                    <td>@item.FullName</td>
+                    <td>@item.Email</td>
+                    <td>@item.Phone</td>
+                    <td>@item.Address</td>
+                    <td>
+                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-info">Sửa</a>
+                        <a asp-action="Orders" asp-route-id="@item.Id" class="btn btn-sm btn-secondary">Đơn hàng</a>
+                        <a asp-action="Delete" asp-route-id="@item.Id" class="btn btn-sm btn-danger" onclick="return confirm('Xóa?');">Xóa</a>
                     </td>
                 </tr>
             }

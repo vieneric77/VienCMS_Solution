@@ -1,0 +1,33 @@
+﻿@using CMS.Data.Entities
+@model IEnumerable<Banner>
+@{
+    Layout = "_LayoutAdmin"; ViewData["Title"] = "Quản lý Banner";
+}
+
+<div class="container mt-4">
+    <h2>Quản lý Banner</h2>
+    <form asp-action="Create" enctype="multipart/form-data" method="post" class="mb-4">
+        <input type="file" name="file" class="form-control mb-2" required />
+        <button type="submit" class="btn btn-primary">Thêm Banner mới</button>
+    </form>
+    <div class="row">
+        @foreach (var item in Model)
+        {
+            <div class="col-md-4 mb-3">
+                <div class="card @(item.IsActive ? "border-primary" : "")">
+                    <img src="@item.ImageUrl" class="card-img-top" style="height:200px; object-fit:cover;" />
+                    <div class="card-body">
+                        <form asp-action="SetStatus" asp-route-id="@item.Id" method="post" class="d-inline">
+                            <button class="btn btn-sm @(item.IsActive ? "btn-success" : "btn-outline-secondary")">
+                                @(item.IsActive ? "Đang hiển thị" : "Chọn hiển thị")
+                            </button>
+                        </form>
+                        <form asp-action="Delete" asp-route-id="@item.Id" method="post" class="d-inline">
+                            <button class="btn btn-sm btn-danger" onclick="return confirm('Xóa?')">Xóa</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+</div>

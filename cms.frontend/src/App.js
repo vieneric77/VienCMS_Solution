@@ -1,36 +1,48 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
+import Header from './components/Header/Header';
+import Banner from './components/Banner/Banner';
 import CategoryList from './components/CategoryList';
 import ProductList from './components/ProductList';
-import PostList from './components/PostList'; // Nhớ thêm dòng import này để kích hoạt phần tin tức
+import PostList from './components/PostList';
+import PostDetail from './components/PostDetail';
+import ProductDetail from './components/ProductDetail';
 
 function App() {
+    const [selectedCategoryId, setSelectedCategoryId] = useState(null);
+    const [selectedPostId, setSelectedPostId] = useState(null);
+    const [selectedProductId, setSelectedProductId] = useState(null);
+
     return (
-        <div className="container mt-5">
-            <header className="pb-3 mb-4 border-bottom">
-                <span className="fs-4 font-weight-bold text-dark">
-                    👗 FASHION BOUTIQUE - THỜI TRANG CÔNG SỞ & DẠ HỘI
-                </span>
-            </header>
+        <div className="app-wrapper">
+            <Header />
+            <Banner /> {/* Banner tự động cập nhật từ backend */}
 
-            {/* KHU VỰC 1: SHOPPING (Sản phẩm và Bộ lọc danh mục sản phẩm) */}
-            <div className="row">
-                <div className="col-md-4">
-                    <CategoryList />
-                </div>
-                <div className="col-md-8">
-                    <h4 className="mb-4 text-uppercase text-secondary font-weight-bold">Bộ sưu tập mới nhất</h4>
-                    <ProductList />
-                </div>
-            </div>
+            <div className="container mt-4">
+                <header className="pb-3 mb-4 border-bottom">
+                    <span className="fs-4 font-weight-bold text-dark">
+                        👗 FASHION BOUTIQUE - THỜI TRANG CÔNG SỞ & DẠ HỘI
+                    </span>
+                </header>
 
-            {/* KHU VỰC 2: BLOG & BLOG CATEGORIES (Tin tức thời trang công sở, dạ hội) */}
-            <div className="row mt-5">
-                <div className="col-12">
-                    <PostList />
-                </div>
+                {selectedProductId !== null ? (
+                    <ProductDetail productId={selectedProductId} onBack={() => setSelectedProductId(null)} />
+                ) : selectedPostId !== null ? (
+                    <PostDetail postId={selectedPostId} onBack={() => setSelectedPostId(null)} />
+                ) : (
+                    <div className="row">
+                        <div className="col-md-4">
+                            <CategoryList onSelectCategory={(id) => setSelectedCategoryId(id)} />
+                        </div>
+                        <div className="col-md-8">
+                            <ProductList selectedCategoryId={selectedCategoryId} onSelectProduct={setSelectedProductId} />
+                        </div>
+                        <div className="col-12 mt-5">
+                            <PostList onSelectPost={setSelectedPostId} />
+                        </div>
+                    </div>
+                )}
             </div>
         </div>
     );
 }
-
 export default App;

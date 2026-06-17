@@ -1,30 +1,50 @@
-﻿@model IEnumerable<CMS.Data.Entities.Post>
+﻿@model IEnumerable<CMS.Backend.Controllers.OrderDemo>
 
-<div class="container mt-5">
-    <h2 class="text-center mb-4 text-danger">TIN TỨC MỚI NHẤT</h2>
+@{
+    ViewData["Title"] = "Dashboard Admin";
+    // SỬA TÊN LAYOUT ĐÚNG VỚI TÊN TRONG THƯ MỤC SHARED
+    Layout = "_LayoutAdmin";
+}
+
+<div class="container-fluid mt-4">
+    <h2>Dashboard Demo</h2>
     <div class="row">
-        @if (Model != null)
-        {
-            @foreach (var item in Model)
-            {
-                <div class="col-md-4">
-                    <div class="card shadow-sm h-100">
-                        <img src="@item.ImageUrl" class="card-img-top" alt="Thumbnail" style="height: 200px; object-fit: cover;">
-                        <div class="card-body">
-                            @if (item.Category != null)
-                            {
-                                <span class="badge bg-primary mb-2">@item.Category.Name</span>
-                            }
-                            <h5 class="card-title">@item.Title</h5>
-                            <p class="card-text text-truncate">@item.Content</p>
-                            <a href="/Post/Details/@item.Id" class="btn btn-outline-danger btn-sm">Đọc tiếp</a>
-                        </div>
-                        <div class="card-footer text-muted small">
-                            Ngày đăng: @item.CreatedDate.ToString("dd/MM/yyyy")
-                        </div>
-                    </div>
-                </div>
-            }
-        }
+        <div class="col-md-6">
+            <div class="card bg-primary text-white p-3">
+                <h5>Tổng doanh thu</h5>
+                <h3>@ViewBag.TotalRevenue.ToString("N0") VNĐ</h3>
+            </div>
+        </div>
+        <div class="col-md-6">
+            <div class="card bg-success text-white p-3">
+                <h5>Số đơn hàng</h5>
+                <h3>@ViewBag.TotalOrders</h3>
+            </div>
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header">Đơn hàng gần đây (Demo)</div>
+        <table class="table">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Ngày</th>
+                    <th>Khách hàng</th>
+                    <th>Tổng tiền</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.Id</td>
+                        <td>@item.OrderDate</td>
+                        <td>@item.CustomerName</td>
+                        <td>@item.TotalAmount.ToString("N0") VNĐ</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
     </div>
 </div>

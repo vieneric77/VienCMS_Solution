@@ -1,7 +1,7 @@
 ﻿import React, { useState, useEffect } from 'react';
 import blogService from '../services/blogService';
 
-const PostList = () => {
+const PostList = ({ onSelectPost }) => {
     const [posts, setPosts] = useState([]);
     const [loading, setLoading] = useState(true);
 
@@ -46,20 +46,38 @@ const PostList = () => {
                                 />
                                 <div className="card-body d-flex flex-column">
                                     <span className="badge badge-info align-self-start mb-2">{post.categoryName}</span>
+
+                                    {/* Sửa link tiêu đề: thêm onClick để bắt ID */}
                                     <h5 className="card-title font-weight-bold">
-                                        <a href={`/posts/${post.id}`} className="text-dark text-decoration-none hover-link">
+                                        <a
+                                            href="#!"
+                                            className="text-dark text-decoration-none hover-link"
+                                            onClick={(e) => {
+                                                e.preventDefault();
+                                                onSelectPost(post.id);
+                                            }}
+                                        >
                                             {post.title}
                                         </a>
                                     </h5>
+
                                     <p className="card-text text-muted small text-truncate">
-                                        {post.content}
+                                        {post.content ? post.content.replace(/<[^>]*>/g, '') : ''}
                                     </p>
+
+                                    {/* Sửa phần chân chữ "Xem thêm": thêm cursor pointer và onClick */}
                                     <div className="d-flex justify-content-between align-items-center text-secondary small mt-auto pt-2">
                                         <span>
                                             <i className="fa-regular fa-calendar mr-1"></i>
                                             {new Date(post.createdDate).toLocaleDateString('vi-VN')}
                                         </span>
-                                        <span className="text-info font-weight-bold">Xem thêm</span>
+                                        <span
+                                            className="text-info font-weight-bold"
+                                            style={{ cursor: 'pointer' }}
+                                            onClick={() => onSelectPost(post.id)}
+                                        >
+                                            Xem thêm <i className="fa-solid fa-angle-right small ml-1"></i>
+                                        </span>
                                     </div>
                                 </div>
                             </div>

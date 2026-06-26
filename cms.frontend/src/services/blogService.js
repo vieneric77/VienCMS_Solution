@@ -2,18 +2,20 @@
 
 const blogService = {
     getBlogCategories: () => {
-        const url = '/Categories';
-        return axiosClient.get(url);
+        return axiosClient.get('/apicategory');
     },
 
     getAllPosts: () => {
-        const url = '/Posts';
-        return axiosClient.get(url);
+        return axiosClient.get('/posts');
+    },
+
+    // Thêm hàm này để gọi API lọc bài viết theo Category
+    getPostsByCategory: (categoryId) => {
+        return axiosClient.get(`/posts/category/${categoryId}`);
     },
 
     getPostById: (id) => {
-        const url = `/Posts/${id}`;
-        return axiosClient.get(url);
+        return axiosClient.get(`/posts/${id}`);
     }
 };
 

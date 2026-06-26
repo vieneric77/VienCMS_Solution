@@ -1,9 +1,11 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import productService from '../services/productService';
 
-const ProductDetail = ({ productId, onBack }) => {
+const ProductDetail = ({ productId }) => {
     const [product, setProduct] = useState(null);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     const BACKEND_URL = "https://localhost:7231";
 
@@ -40,7 +42,7 @@ const ProductDetail = ({ productId, onBack }) => {
         return (
             <div className="container mt-4">
                 <div className="alert alert-danger">Không tìm thấy sản phẩm.</div>
-                <button onClick={onBack} className="btn btn-secondary">Quay lại</button>
+                <button onClick={() => navigate('/')} className="btn btn-secondary">Quay lại</button>
             </div>
         );
     }
@@ -81,7 +83,7 @@ const ProductDetail = ({ productId, onBack }) => {
                     </div>
                 </div>
                 <div className="card-footer bg-white py-3 border-top-0">
-                    <button onClick={onBack} className="btn btn-outline-secondary">
+                    <button onClick={() => navigate('/shop')} className="btn btn-outline-secondary">
                         <i className="fa-solid fa-arrow-left mr-2"></i> Quay lại danh sách
                     </button>
                 </div>

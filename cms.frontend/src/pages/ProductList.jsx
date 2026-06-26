@@ -1,11 +1,18 @@
 ﻿import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import productService from '../services/productService';
 
 const ProductList = ({ selectedCategoryId, onSelectProduct }) => {
     const [products, setProducts] = useState([]);
     const [loading, setLoading] = useState(true);
+    const navigate = useNavigate();
 
     const BACKEND_URL = "https://localhost:7231";
+
+    // Hàm thông báo tính năng đang cập nhật
+    const handleBuyNow = () => {
+        alert("Tính năng Mua ngay đang được cập nhật, vui lòng quay lại sau! 🛍️");
+    };
 
     useEffect(() => {
         const fetchProducts = async () => {
@@ -33,6 +40,11 @@ const ProductList = ({ selectedCategoryId, onSelectProduct }) => {
         if (url.startsWith('http://') || url.startsWith('https://')) return url;
         const cleanUrl = url.startsWith('/') ? url : `/${url}`;
         return `${BACKEND_URL}${cleanUrl}`;
+    };
+
+    const handleViewDetail = (id) => {
+        onSelectProduct?.(id);
+        navigate('/product-detail');
     };
 
     if (loading) {
@@ -63,11 +75,20 @@ const ProductList = ({ selectedCategoryId, onSelectProduct }) => {
                                 <p className="card-text small text-muted mb-0">Số lượng tồn kho: {item.stockQuantity} sản phẩm</p>
                             </div>
                             <div className="card-footer bg-transparent border-top-0">
+                                {/* Nút Xem chi tiết */}
                                 <button
-                                    className="btn btn-outline-primary btn-block btn-sm"
-                                    onClick={() => onSelectProduct?.(item.id)}
+                                    className="btn btn-outline-primary btn-block btn-sm mb-2"
+                                    onClick={() => handleViewDetail(item.id)}
                                 >
-                                    <i className="fa-solid fa-cart-plus mr-1"></i> Xem chi tiết
+                                    <i className="fa-solid fa-eye mr-1"></i> Xem chi tiết
+                                </button>
+
+                                {/* Nút Mua ngay mới */}
+                                <button
+                                    className="btn btn-primary btn-block btn-sm"
+                                    onClick={handleBuyNow}
+                                >
+                                    <i className="fa-solid fa-cart-plus mr-1"></i> Mua ngay
                                 </button>
                             </div>
                         </div>

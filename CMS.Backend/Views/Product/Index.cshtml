@@ -1,0 +1,80 @@
+﻿@model List<CMS.Data.Entities.Product>
+
+@{
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Quản lý sản phẩm";
+}
+
+<div class="container mt-4">
+    <div class="d-flex justify-content-between align-items-center mb-4">
+        <h3 class="text-danger font-weight-bold m-0 text-uppercase">Bài Tập 4: Liệt Kê Danh Sách Products</h3>
+        <a asp-action="Create" class="btn btn-success">
+            <i class="bi bi-plus-circle"></i> Thêm sản phẩm mới
+        </a>
+    </div>
+
+    <div class="card shadow-sm mb-4">
+        <div class="card-body p-0">
+            <table class="table table-bordered table-striped table-hover align-middle mb-0 bg-white">
+                <thead class="table-primary text-dark">
+                    <tr>
+                        <th style="width: 80px;" class="text-center">ID</th>
+                        <th style="width: 100px;" class="text-center">Hình Ảnh</th>
+                        <th style="width: 250px;">Tên Sản Phẩm</th>
+                        <th>Mô Tả Sản Phẩm</th>
+                        <th style="width: 140px;" class="text-end">Giá Bán</th>
+                        <th style="width: 100px;" class="text-center">Tồn Kho</th>
+                        <th class="text-center" style="width: 180px;">Thao Tác</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @if (Model != null && Model.Any())
+                    {
+                        foreach (var item in Model)
+                        {
+                            <tr>
+                                <td class="text-center font-weight-bold">@item.Id</td>
+                                <td class="text-center">
+                                    <img src="@item.ImageUrl" alt="product-img" class="img-thumbnail" style="width: 60px; height: 60px; object-fit: cover;" onError="this.src='https://placehold.co/60'">
+                                </td>
+                                <td class="font-weight-bold text-primary">@item.Name</td>
+                                <td>
+                                    <div class="text-muted text-truncate" style="max-width: 380px;">
+                                        @Html.Raw(item.Description)
+                                    </div>
+                                </td>
+                                <td class="text-end text-danger font-weight-bold">@item.Price.ToString("N0") đ</td>
+                                <td class="text-center">
+                                    <span class="badge @(item.StockQuantity > 10 ? "bg-success" : "bg-warning")">
+                                        @item.StockQuantity
+                                    </span>
+                                </td>
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-1">
+                                        <a asp-action="Edit" asp-route-id="@item.Id" class="btn btn-sm btn-outline-warning">
+                                            Sửa
+                                        </a>
+
+                                        <a asp-action="Delete" asp-route-id="@item.Id"
+                                           class="btn btn-sm btn-outline-danger"
+                                           onclick="return confirm('Bạn có chắc chắn muốn xóa sản phẩm này không?')">
+                                            <i class="bi bi-trash"></i> Xóa
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                        }
+                    }
+                    else
+                    {
+                        <tr>
+                            <td colspan="7" class="text-center text-muted py-4">
+                                Chưa có dữ liệu sản phẩm nào. Hãy kiểm tra lại hoặc thêm sản phẩm mới!
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

@@ -1,0 +1,123 @@
+﻿@model IEnumerable<CMS.Data.Entities.Order>
+@{
+    ViewData["Title"] = "Bảng Điều Khiển Thư Viện";
+    Layout = "~/Views/Shared/_LayoutAdmin.cshtml";
+    var lowStockProducts = ViewBag.LowStockProducts as List<CMS.Data.Entities.Product>;
+}
+
+<div class="container-fluid px-0" style="color: #2c3e50;">
+    <div class="d-flex justify-content-between align-items-end mb-4">
+        <div>
+            <h4 class="fw-bold mb-1"><i class="bi bi-book-half text-success"></i> Kho lưu trữ & Sách</h4>
+            <p class="text-muted small mb-0">Quản lý đầu sách, đơn mượn và kiểm soát doanh thu tài chính thư viện.</p>
+        </div>
+        <div class="px-3 py-2 border rounded-pill bg-white shadow-sm" style="font-size: 13px;">
+            <i class="bi bi-clock text-success"></i> Ngày báo cáo: <strong>@DateTime.Now.ToString("dd/MM/yyyy")</strong>
+        </div>
+    </div>
+
+    <div class="row g-3 mb-4">
+        @{
+            var revenueData = new[] {
+                ("Doanh thu ngày", ViewBag.RevenueToday, "bi-calendar-event"),
+                ("Doanh thu tháng", ViewBag.RevenueMonth, "bi-calendar-month"),
+                ("Doanh thu quý", ViewBag.RevenueQuarter, "bi-graph-up"),
+                ("Doanh thu năm", ViewBag.RevenueYear, "bi-shield-check")
+                };
+        }
+        @foreach (var item in revenueData)
+        {
+            <div class="col-6 col-md-3">
+                <div class="card border-0 shadow-sm p-3 rounded-4 bg-white hover-up" style="border-left: 5px solid #2d6a4f;">
+                    <div class="text-muted small mb-1"><i class="bi @item.Item3"></i> @item.Item1</div>
+                    <h5 class="fw-bold m-0" style="color: #1b4332;">@(((decimal)item.Item2).ToString("N0")) ₫</h5>
+                </div>
+            </div>
+        }
+    </div>
+
+    <div class="row g-3 mb-4">
+        <div class="col-12 col-xl-3"><div class="card p-3 border-0 shadow-sm rounded-4 h-100 bg-light-green"><div class="text-success small fw-bold">ĐƠN CHỜ DUYỆT</div><h3 class="fw-bold">@ViewBag.TotalNewOrders</h3></div></div>
+        <div class="col-12 col-xl-3"><div class="card p-3 border-0 shadow-sm rounded-4 h-100 bg-light-brown"><div class="text-warning small fw-bold">TỔNG ĐẦU SÁCH</div><h3 class="fw-bold">@ViewBag.TotalProducts</h3></div></div>
+        <div class="col-12 col-xl-3"><div class="card p-3 border-0 shadow-sm rounded-4 h-100 bg-light-blue"><div class="text-primary small fw-bold">ĐỘC GIẢ</div><h3 class="fw-bold">@ViewBag.TotalCustomers</h3></div></div>
+        <div class="col-12 col-xl-3"><div class="card p-3 border-0 shadow-sm rounded-4 h-100 bg-light-purple"><div class="text-purple small fw-bold">BÀI VIẾT MẸO</div><h3 class="fw-bold">@ViewBag.TotalPosts</h3></div></div>
+    </div>
+
+    <div class="row g-4">
+        <div class="col-lg-8">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white py-3 border-0 d-flex justify-content-between align-items-center">
+                    <h6 class="fw-bold m-0"><i class="bi bi-list-task text-success me-2"></i>Đơn hàng mới</h6>
+                    <a href="@Url.Action("Index", "Order")" class="text-success text-decoration-none small">Xem tất cả</a>
+                </div>
+                <div class="table-responsive">
+                    <table class="table align-middle mb-0">
+                        <thead class="table-light text-muted" style="font-size: 12px;">
+                            <tr><th class="ps-4">MÃ ĐƠN</th><th>ĐỘC GIẢ</th><th>TRẠNG THÁI</th><th class="text-end pe-4">THAO TÁC</th></tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var order in Model.Take(5))
+                            {
+                                <tr>
+                                    <td class="ps-4 fw-bold">#@order.Id</td>
+                                    <td><div class="fw-bold">@(order.Customer?.FullName ?? "Vãng lai")</div></td>
+                                    <td><span class="badge rounded-pill bg-light text-dark border">@order.Status</span></td>
+                                    <td class="text-end pe-4"><a href="@Url.Action("Details", "Order", new { id = order.Id })" class="btn btn-sm btn-outline-success rounded-pill">Duyệt</a></td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-lg-4">
+            <div class="card border-0 shadow-sm rounded-4 p-3 mb-4">
+                <h6 class="fw-bold mb-3"><i class="bi bi-book text-warning me-2"></i>Thao tác nhanh</h6>
+                <a href="@Url.Action("Create", "Product")" class="btn btn-success w-100 rounded-3 py-2"><i class="bi bi-plus-lg me-2"></i>Thêm đầu sách mới</a>
+            </div>
+
+            <div class="card border-0 shadow-sm rounded-4 p-3">
+                <h6 class="fw-bold mb-3 text-danger"><i class="bi bi-exclamation-circle me-2"></i>Cảnh báo kho</h6>
+                @foreach (var prod in lowStockProducts ?? new List<CMS.Data.Entities.Product>())
+                {
+                    <div class="d-flex justify-content-between py-2 border-bottom small">
+                        <span>@prod.Name</span>
+                        <span class="badge bg-danger">Còn: @prod.StockQuantity</span>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<style>
+    .hover-up {
+        transition: 0.3s;
+    }
+
+        .hover-up:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.05) !important;
+        }
+
+    .bg-light-green {
+        background: #f0f7f4;
+    }
+
+    .bg-light-brown {
+        background: #fdfaf6;
+    }
+
+    .bg-light-blue {
+        background: #f0f4f8;
+    }
+
+    .bg-light-purple {
+        background: #f8f5fb;
+    }
+
+    .text-purple {
+        color: #8e44ad;
+    }
+</style>

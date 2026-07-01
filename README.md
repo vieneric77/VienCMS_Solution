@@ -1,14 +1,10 @@
-# ĐỒ ÁN MÔN HỌC - HỆ THỐNG QUẢN LÝ VẬT TƯ CƠ KHÍ & THƯƠNG MẠI ĐIỆN TỬ
+# ĐỒ ÁN MÔN HỌC - HỆ THỐNG Bán Sách Trực Tuyến
 
 ## Thông tin sinh viên
 
-* Họ và tên: Lê Thanh Hồ
-* MSSV: 2123110125
+* Họ và tên: Huỳnh Thái Viên
+* MSSV: 2123110123
 * Lớp: CCQ2311D
-
-## Giới thiệu
-
-Hệ thống được xây dựng nhằm hỗ trợ quản lý và kinh doanh vật tư cơ khí trực tuyến. Dự án bao gồm hai phân hệ:
 
 ### 1. Phân hệ Quản trị (Admin CMS)
 
@@ -86,7 +82,7 @@ dotnet run
 Địa chỉ mặc định:
 
 ```text
-https://localhost:7116
+https://localhost:7024
 ```
 
 ---
@@ -166,12 +162,3 @@ CMS.Frontend
 └── Assets
 ```
 
----
-
-## Tác giả
-
-Lê Thanh Hồ
-
-MSSV: 2123110125
-
-Lớp: CCQ2311D

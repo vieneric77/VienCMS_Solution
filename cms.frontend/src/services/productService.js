@@ -1,6 +1,4 @@
-﻿
-
-const API_BASE_URL = 'https://localhost:7024';
+﻿const API_BASE_URL = 'https://localhost:7024';
 const PRODUCT_API = `${API_BASE_URL}/api/products`;
 const CATEGORY_API = `${API_BASE_URL}/api/categoryproducts`;
 
@@ -10,7 +8,11 @@ export async function getAllProducts() {
     if (!res.ok) throw new Error('Lỗi tải sản phẩm');
     return res.json();
 }
-
+export async function getBestSellingProducts(top = 3) {
+    const res = await fetch(`${PRODUCT_API}/best-selling?top=${top}`);
+    if (!res.ok) throw new Error('Lỗi tải sản phẩm bán chạy');
+    return res.json();
+}
 /** Lấy sản phẩm theo ID */
 export async function getProductById(id) {
     const res = await fetch(`${PRODUCT_API}/${id}`);
@@ -48,18 +50,13 @@ export async function getAllProductCategories() {
 }
 
 export { API_BASE_URL };
-
-// ── Default export ──────────────────────────────────────────
-// Cho phép import theo 2 cách:
-//   import { getAllProducts } from '../services/productService';   (named)
-//   import productService from '../services/productService';       (default)
-//   productService.getAllProducts(...)
 const productService = {
     getAllProducts,
     getProductById,
     getProductsByCategory,
     getProductsByPrice,
     getAllProductCategories,
+    getBestSellingProducts,
     API_BASE_URL
 };
 

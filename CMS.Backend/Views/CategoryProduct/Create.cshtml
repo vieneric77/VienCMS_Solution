@@ -1,5 +1,4 @@
-﻿
-@model CMS.Data.Entities.CategoryProduct
+﻿@model CMS.Data.Entities.CategoryProduct
 
 @{
     ViewData["Title"] = "Thêm Danh mục Sản phẩm";
@@ -34,7 +33,8 @@
         <h6 class="mb-0 fw-semibold">Thông tin danh mục</h6>
     </div>
     <div class="card-body p-4">
-        <form asp-action="Create" method="post">
+        @* THÊM enctype="multipart/form-data" ĐỂ CÓ THỂ GỬI FILE *@
+        <form asp-action="Create" method="post" enctype="multipart/form-data">
             @Html.AntiForgeryToken()
 
             <div class="mb-3">
@@ -45,14 +45,20 @@
                        placeholder="Ví dụ: Điện thoại, Laptop, Thời trang..."
                        autocomplete="off" />
                 <span asp-validation-for="Name" class="text-danger small"></span>
-                <div class="form-text">Tối đa 100 ký tự.</div>
             </div>
 
-            <div class="mb-4">
+            <div class="mb-3">
                 <label asp-for="Description" class="form-label fw-semibold">Mô tả</label>
                 <textarea asp-for="Description" class="form-control" rows="4"
                           placeholder="Mô tả ngắn về danh mục này..."></textarea>
                 <span asp-validation-for="Description" class="text-danger small"></span>
+            </div>
+
+            @* THÊM TRƯỜNG UPLOAD ẢNH *@
+            <div class="mb-4">
+                <label class="form-label fw-semibold">Ảnh danh mục</label>
+                <input type="file" name="imageFile" class="form-control" accept="image/*" />
+                <div class="form-text">Chọn định dạng: jpg, png, webp.</div>
             </div>
 
             <div class="d-flex gap-2">

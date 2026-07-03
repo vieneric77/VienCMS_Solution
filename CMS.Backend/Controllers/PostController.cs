@@ -8,6 +8,7 @@ using Microsoft.AspNetCore.Http;
 using System.IO;
 using System;
 using Microsoft.AspNetCore.Authorization;
+using System.Threading.Tasks;
 
 namespace CMS.Backend.Controllers
 {
@@ -21,15 +22,51 @@ namespace CMS.Backend.Controllers
             _context = context;
         }
 
-        public IActionResult Index(int? id)
+        public IActionResult Index(int? id, int page = 1)
         {
-            if (id == null)
+            int pageSize = 5;
+            var query = _context.Posts.AsQueryable();
+
+            if (id.HasValue)
             {
-                var allPosts = _context.Posts.OrderByDescending(p => p.CreatedDate).Include(p => p.Category).ToList();
-                return View(allPosts);
+                query = query.Where(p => p.CategoryId == id.Value);
             }
-            var posts = _context.Posts.Where(p => p.CategoryId == id).OrderByDescending(p => p.CreatedDate).Include(p => p.Category).ToList();
+
+            var totalPosts = query.Count();
+            ViewBag.TotalPages = (int)Math.Ceiling(totalPosts / (double)pageSize);
+            ViewBag.CurrentPage = page;
+            ViewBag.CategoryId = id;
+
+            var posts = query.OrderByDescending(p => p.CreatedDate)
+                             .Include(p => p.Category)
+                             .Skip((page - 1) * pageSize)
+                             .Take(pageSize)
+                             .ToList();
+
             return View(posts);
+        }
+
+        // Action xử lý upload ảnh từ CKEditor
+        [HttpPost]
+        public async Task<IActionResult> UploadImage(IFormFile upload)
+        {
+            if (upload != null && upload.Length > 0)
+            {
+                var fileName = Guid.NewGuid().ToString() + Path.GetExtension(upload.FileName);
+                var folder = Path.Combine(Directory.GetCurrentDirectory(), "wwwroot", "uploads");
+
+                if (!Directory.Exists(folder)) Directory.CreateDirectory(folder);
+
+                var filePath = Path.Combine(folder, fileName);
+                using (var stream = new FileStream(filePath, FileMode.Create))
+                {
+                    await upload.CopyToAsync(stream);
+                }
+
+                // CKEditor yêu cầu trả về định dạng JSON này
+                return Json(new { uploaded = true, url = "/uploads/" + fileName });
+            }
+            return Json(new { uploaded = false, error = new { message = "Upload không thành công" } });
         }
 
         public IActionResult Details(int id)

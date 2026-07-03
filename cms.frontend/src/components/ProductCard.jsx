@@ -1,10 +1,11 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
 import cartService from '../services/cartService';
-
-const IMAGE_BASE_URL = process.env.REACT_APP_API_URL || "https://localhost:7024";
+import { IMAGE_BASE_URL } from '../api/axiosClient'; 
 
 function ProductCard({ item }) {
+    if (!item) return null;
+
     const formatCurrency = (value) => {
         return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(value);
     };
@@ -25,9 +26,20 @@ function ProductCard({ item }) {
     };
 
     return (
-        <div className="card h-100 border-0 rounded-4 shadow-sm overflow-hidden product-card"
-            style={{ transition: 'all 0.4s ease' }}>
-
+        <div
+            className="card h-100 border-0 rounded-4 shadow-sm overflow-hidden product-card"
+            style={{
+                transition: 'transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275), box-shadow 0.4s ease'
+            }}
+            onMouseOver={(e) => {
+                e.currentTarget.style.transform = 'translateY(-10px)';
+                e.currentTarget.style.boxShadow = '0 1rem 3rem rgba(0,0,0,.15)';
+            }}
+            onMouseOut={(e) => {
+                e.currentTarget.style.transform = 'translateY(0)';
+                e.currentTarget.style.boxShadow = '0 .125rem .25rem rgba(0,0,0,.075)';
+            }}
+        >
             <div className="position-relative overflow-hidden bg-light" style={{ height: '220px' }}>
                 <Link to={`/product/${item.id}`}>
                     <img
@@ -45,7 +57,7 @@ function ProductCard({ item }) {
                 )}
 
                 {item.stockQuantity === 0 && (
-                    <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50 text-white">
+                    <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50 text-white fw-bold">
                         HẾT HÀNG
                     </div>
                 )}
@@ -70,29 +82,24 @@ function ProductCard({ item }) {
 
                 <div className="mt-auto d-flex gap-2">
                     <Link to={`/product/${item.id}`}
-                        className="btn btn-outline-dark btn-sm flex-fill rounded-pill py-2"
-                        style={{ fontSize: '0.8rem' }}>
-                        Chi tiết
+                        className="btn btn-outline-dark btn-sm flex-fill rounded-pill py-2 d-flex align-items-center justify-content-center"
+                        style={{ fontSize: '0.8rem', fontWeight: '600' }}>
+                        <i className="fas fa-eye me-1"></i> Chi tiết
                     </Link>
 
                     <button onClick={handleAddToCartClick}
                         disabled={item.stockQuantity === 0}
                         className="btn btn-dark btn-sm flex-fill rounded-pill py-2"
-                        style={{ fontSize: '0.8rem', backgroundColor: item.stockQuantity === 0 ? '#ccc' : '#00b894', border: 'none' }}>
+                        style={{
+                            fontSize: '0.8rem',
+                            backgroundColor: item.stockQuantity === 0 ? '#ccc' : '#00b894',
+                            border: 'none',
+                            fontWeight: '600'
+                        }}>
                         <i className="fas fa-shopping-cart me-1"></i> Mua
                     </button>
                 </div>
             </div>
-
-            <style>{`
-                .product-card:hover {
-                    box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
-                    transform: translateY(-5px);
-                }
-                .product-card:hover img {
-                    transform: scale(1.05);
-                }
-            `}</style>
         </div>
     );
 }

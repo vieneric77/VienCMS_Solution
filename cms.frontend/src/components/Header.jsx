@@ -1,10 +1,12 @@
 ﻿import React, { useEffect, useState } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import authService from '../services/authService';
 
 function Header() {
     const location = useLocation();
+    const navigate = useNavigate();
     const [cartCount, setCartCount] = useState(0);
+    const [searchQuery, setSearchQuery] = useState('');
 
     useEffect(() => {
         const updateCartBadge = () => {
@@ -25,7 +27,9 @@ function Header() {
 
     const handleSearchSubmit = (e) => {
         e.preventDefault();
-        alert("Chức năng tìm kiếm sách đang được tích hợp!");
+        if (searchQuery.trim()) {
+            navigate(`/search?q=${encodeURIComponent(searchQuery)}`);
+        }
     };
 
     const getNavStyle = (path) => {
@@ -106,6 +110,8 @@ function Header() {
                                 <input
                                     type="text"
                                     placeholder="Bạn cần tìm cuốn sách tâm đắc nào?..."
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
                                     style={{
                                         width: '100%',
                                         height: '48px',
@@ -184,9 +190,9 @@ function Header() {
                             className="navbar-nav d-flex flex-row flex-wrap align-items-center m-0 px-4 py-1"
                             style={{
                                 listStyle: 'none',
-                                backgroundColor: '#f3f4f6', 
-                                borderRadius: '50px',     
-                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)' 
+                                backgroundColor: '#f3f4f6',
+                                borderRadius: '50px',
+                                boxShadow: '0 2px 8px rgba(0,0,0,0.05)'
                             }}
                         >
                             <li className="nav-item" style={{ margin: '0 10px' }}>

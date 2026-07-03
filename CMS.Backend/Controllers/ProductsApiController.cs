@@ -2,6 +2,8 @@
 using CMS.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 
 namespace CMS.Backend.Controllers.Api
 {
@@ -11,6 +13,7 @@ namespace CMS.Backend.Controllers.Api
     {
         private readonly ApplicationDbContext _context;
         public ProductsController(ApplicationDbContext context) => _context = context;
+
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -24,7 +27,7 @@ namespace CMS.Backend.Controllers.Api
                     p.StockQuantity,
                     p.ImageUrl,
                     p.CategoryProductId,
-                    CategoryName = p.CategoryProduct.Name
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : ""
                 })
                 .ToList();
             return Ok(products);
@@ -43,7 +46,7 @@ namespace CMS.Backend.Controllers.Api
                     p.StockQuantity,
                     p.ImageUrl,
                     p.CategoryProductId,
-                    CategoryName = p.CategoryProduct.Name
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : ""
                 })
                 .FirstOrDefault();
 
@@ -52,6 +55,7 @@ namespace CMS.Backend.Controllers.Api
 
             return Ok(product);
         }
+
         [HttpGet("category/{categoryId}")]
         public IActionResult GetByCategory(int categoryId)
         {
@@ -68,6 +72,27 @@ namespace CMS.Backend.Controllers.Api
                 .ToList();
             return Ok(products);
         }
+
+        [HttpGet("best-selling")]
+        public IActionResult GetBestSelling([FromQuery] int top = 3)
+        {
+            var products = _context.Products
+                .Include(p => p.OrderDetails)
+                .OrderByDescending(p => p.OrderDetails.Sum(od => (int?)od.Quantity) ?? 0)
+                .Take(top)
+                .Select(p => new {
+                    p.Id,
+                    p.Name,
+                    p.Price,
+                    p.ImageUrl,
+                    TotalSold = p.OrderDetails.Sum(od => (int?)od.Quantity) ?? 0,
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : ""
+                })
+                .ToList();
+
+            return Ok(products);
+        }
+
         [HttpGet("by-price")]
         public IActionResult GetByPrice(
             [FromQuery] decimal? minPrice,
@@ -93,12 +118,13 @@ namespace CMS.Backend.Controllers.Api
                     p.Price,
                     p.StockQuantity,
                     p.ImageUrl,
-                    CategoryName = p.CategoryProduct.Name
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : ""
                 })
                 .ToList();
 
             return Ok(products);
         }
+
         [HttpGet("highest-price")]
         public IActionResult GetHighestPrice([FromQuery] int top = 5)
         {
@@ -110,12 +136,13 @@ namespace CMS.Backend.Controllers.Api
                     p.Name,
                     p.Price,
                     p.ImageUrl,
-                    CategoryName = p.CategoryProduct.Name
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : ""
                 })
                 .ToList();
 
             return Ok(products);
         }
+
         [HttpGet("lowest-price")]
         public IActionResult GetLowestPrice([FromQuery] int top = 5)
         {
@@ -127,62 +154,44 @@ namespace CMS.Backend.Controllers.Api
                     p.Name,
                     p.Price,
                     p.ImageUrl,
-                    CategoryName = p.CategoryProduct.Name
+                    CategoryName = p.CategoryProduct != null ? p.CategoryProduct.Name : ""
                 })
                 .ToList();
 
             return Ok(products);
         }
+
+        [HttpGet("latest")]
+        public IActionResult GetLatestProducts()
+        {
+            var products = _context.Products
+                .OrderByDescending(p => p.CreatedAt)
+                .Take(3)
+                .Select(p => new {
+                    p.Id,
+                    p.Name,
+                    p.Price,
+                    p.ImageUrl,
+                    p.CreatedAt
+                })
+                .ToList();
+            return Ok(products);
+        }
+
         [HttpPost]
         public IActionResult Create([FromBody] Product model)
         {
             ModelState.Remove("CategoryProduct");
             if (!ModelState.IsValid)
                 return BadRequest(ModelState);
-            bool categoryExists = _context.CategoriesProducts
-                .Any(c => c.Id == model.CategoryProductId);
+
+            bool categoryExists = _context.CategoriesProducts.Any(c => c.Id == model.CategoryProductId);
             if (!categoryExists)
                 return BadRequest(new { message = "Danh mục sản phẩm không tồn tại" });
 
             _context.Products.Add(model);
             _context.SaveChanges();
-            return CreatedAtAction(nameof(GetById), new { id = model.Id }, new
-            {
-                model.Id,
-                model.Name,
-                model.Price
-            });
-        }
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] Product model)
-        {
-            ModelState.Remove("CategoryProduct");
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var product = _context.Products.Find(id);
-            if (product == null)
-                return NotFound(new { message = $"Không tìm thấy sản phẩm ID={id}" });
-
-            product.Name = model.Name;
-            product.Description = model.Description;
-            product.Price = model.Price;
-            product.StockQuantity = model.StockQuantity;
-            product.ImageUrl = model.ImageUrl;
-            product.CategoryProductId = model.CategoryProductId;
-            _context.SaveChanges();
-            return Ok(new { message = "Cập nhật thành công", product.Id, product.Name });
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var product = _context.Products.Find(id);
-            if (product == null)
-                return NotFound(new { message = $"Không tìm thấy sản phẩm ID={id}" });
-
-            _context.Products.Remove(product);
-            _context.SaveChanges();
-            return Ok(new { message = $"Đã xóa sản phẩm \"{product.Name}\"" });
+            return CreatedAtAction(nameof(GetById), new { id = model.Id }, model);
         }
     }
 }

@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using BCrypt.Net; // Thêm thư viện BCrypt
 
 namespace CMS.Backend.Controllers
 {
@@ -45,6 +46,9 @@ namespace CMS.Backend.Controllers
 
             try
             {
+                // MÃ HÓA MẬT KHẨU KHI TẠO MỚI
+                model.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
+
                 _context.Customers.Add(model);
                 _context.SaveChanges();
                 TempData["SuccessMessage"] = $"Đã thêm tài khoản khách hàng \"{model.FullName}\" thành công!";
@@ -65,6 +69,8 @@ namespace CMS.Backend.Controllers
                 TempData["ErrorMessage"] = "Không tìm thấy thông tin khách hàng cần chỉnh sửa.";
                 return RedirectToAction("Index");
             }
+            // Không nên đưa password đã hash ra view để chỉnh sửa trực tiếp, hoặc để trống
+            customer.Password = "";
             return View(customer);
         }
 
@@ -73,7 +79,6 @@ namespace CMS.Backend.Controllers
         public IActionResult Edit(int id, Customer model)
         {
             if (id != model.Id) return BadRequest();
-
             if (!ModelState.IsValid) return View(model);
 
             bool isDuplicate = _context.Customers
@@ -89,11 +94,17 @@ namespace CMS.Backend.Controllers
             {
                 var customer = _context.Customers.Find(id);
                 if (customer == null) return NotFound();
+
                 customer.FullName = model.FullName;
                 customer.Email = model.Email;
                 customer.Phone = model.Phone;
                 customer.Address = model.Address;
-                customer.Password = model.Password;
+
+                // CHỈ BĂM MẬT KHẨU NẾU NGƯỜI DÙNG NHẬP MẬT KHẨU MỚI
+                if (!string.IsNullOrEmpty(model.Password))
+                {
+                    customer.Password = BCrypt.Net.BCrypt.HashPassword(model.Password);
+                }
 
                 _context.SaveChanges();
                 TempData["SuccessMessage"] = $"Cập nhật thông tin khách hàng \"{customer.FullName}\" thành công!";
@@ -101,7 +112,7 @@ namespace CMS.Backend.Controllers
             }
             catch (Exception)
             {
-                ModelState.AddModelError("", "Không thể lưu thay đổi. Vui lòng kiểm tra lại kết nối Database.");
+                ModelState.AddModelError("", "Không thể lưu thay đổi.");
                 return View(model);
             }
         }
@@ -121,7 +132,7 @@ namespace CMS.Backend.Controllers
                 bool hasOrders = _context.Orders.Any(o => o.CustomerId == id);
                 if (hasOrders)
                 {
-                    TempData["ErrorMessage"] = $"Không thể xóa khách hàng \"{customer.FullName}\" vì tài khoản này đã có lịch sử đặt mua đơn hàng cơ khí!";
+                    TempData["ErrorMessage"] = $"Không thể xóa khách hàng \"{customer.FullName}\" vì tài khoản này đã có lịch sử đặt hàng!";
                     return RedirectToAction("Index");
                 }
 

@@ -1,12 +1,6 @@
-﻿
-const API_BASE_URL = 'https://localhost:7024';
-
+﻿const API_BASE_URL = 'https://localhost:7024';
 const BANNER_API = `${API_BASE_URL}/api/banners`;
 
-/**
- * Lấy danh sách banner đang hiển thị (IsActive = true), đã sort theo DisplayOrder.
- * Dùng cho slider/carousel ở trang chủ.
- */
 export async function getActiveBanners() {
     const res = await fetch(`${BANNER_API}/active`);
     if (!res.ok) {

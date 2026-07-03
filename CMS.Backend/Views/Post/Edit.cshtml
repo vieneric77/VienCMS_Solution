@@ -69,7 +69,12 @@
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
     <script>
         ClassicEditor
-            .create(document.querySelector('#Content'))
+            .create(document.querySelector('#Content'), {
+                // Cấu hình để upload ảnh lên server
+                ckfinder: {
+                    uploadUrl: '/Post/UploadImage'
+                }
+            })
             .catch(error => {
                 console.error(error);
             });

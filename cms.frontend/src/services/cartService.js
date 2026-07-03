@@ -1,7 +1,5 @@
 ﻿import axiosClient from '../api/axiosClient';
-
 const API_URL = 'https://localhost:7024/api/CartApi';
-
 const cartService = {
     getCartItems: () => {
         return JSON.parse(localStorage.getItem('cart')) || [];

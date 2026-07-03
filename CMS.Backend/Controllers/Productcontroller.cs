@@ -13,7 +13,7 @@ namespace CMS.Backend.Controllers
     public class ProductController : Controller
     {
         private readonly ApplicationDbContext _context;
-        private readonly IWebHostEnvironment _env; // Thêm biến môi trường để lấy đường dẫn wwwroot
+        private readonly IWebHostEnvironment _env;
 
         public ProductController(ApplicationDbContext context, IWebHostEnvironment env)
         {
@@ -21,10 +21,21 @@ namespace CMS.Backend.Controllers
             _env = env;
         }
 
-        // 1. Danh sách sản phẩm
-        public IActionResult Index()
+        // 1. Danh sách sản phẩm (Đã thêm phân trang)
+        public IActionResult Index(int page = 1)
         {
-            var products = _context.Products.Include(p => p.CategoryProduct).OrderByDescending(p => p.Id).ToList();
+            int pageSize = 5;
+            var totalProducts = _context.Products.Count();
+            ViewBag.TotalPages = (int)Math.Ceiling(totalProducts / (double)pageSize);
+            ViewBag.CurrentPage = page;
+
+            var products = _context.Products
+                .Include(p => p.CategoryProduct)
+                .OrderByDescending(p => p.Id)
+                .Skip((page - 1) * pageSize)
+                .Take(pageSize)
+                .ToList();
+
             return View(products);
         }
 
@@ -40,7 +51,6 @@ namespace CMS.Backend.Controllers
         [ValidateAntiForgeryToken]
         public IActionResult Create(Product model, IFormFile? uploadImage)
         {
-            // Bỏ qua kiểm tra các trường không nhập từ form
             ModelState.Remove("uploadImage");
             ModelState.Remove("ImageUrl");
             ModelState.Remove("CategoryProduct");
@@ -68,7 +78,23 @@ namespace CMS.Backend.Controllers
             ViewBag.CategoryList = new SelectList(_context.CategoriesProducts.ToList(), "Id", "Name", product.CategoryProductId);
             return View(product);
         }
+        // Thay đổi route để chắc chắn React gọi đúng địa chỉ
+        [HttpGet("api/products/search")]
+        public IActionResult Search(string q)
+        {
+            // Kiểm tra nếu query null hoặc rỗng
+            if (string.IsNullOrWhiteSpace(q))
+            {
+                return Ok(new List<Product>());
+            }
 
+            // Tìm kiếm không phân biệt chữ hoa/thường
+            var products = _context.Products
+                .Where(p => p.Name.ToLower().Contains(q.ToLower()))
+                .ToList();
+
+            return Ok(products);
+        }
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Edit(int id, Product model, IFormFile? uploadImage)
@@ -88,7 +114,6 @@ namespace CMS.Backend.Controllers
                 product.StockQuantity = model.StockQuantity;
                 product.CategoryProductId = model.CategoryProductId;
 
-                // CHỈ CẬP NHẬT ẢNH NẾU CÓ ẢNH MỚI
                 if (uploadImage != null) product.ImageUrl = SaveImage(uploadImage);
 
                 _context.SaveChanges();
@@ -110,17 +135,12 @@ namespace CMS.Backend.Controllers
             return RedirectToAction(nameof(Index));
         }
 
-        // HÀM LƯU ẢNH CHUẨN XÁC
         private string SaveImage(IFormFile image)
         {
-            // Lấy đường dẫn wwwroot từ IWebHostEnvironment
             var uploadsFolder = Path.Combine(_env.WebRootPath, "images", "products");
-
             if (!Directory.Exists(uploadsFolder)) Directory.CreateDirectory(uploadsFolder);
-
             var fileName = Guid.NewGuid().ToString() + Path.GetExtension(image.FileName);
             var filePath = Path.Combine(uploadsFolder, fileName);
-
             using (var stream = new FileStream(filePath, FileMode.Create))
             {
                 image.CopyTo(stream);

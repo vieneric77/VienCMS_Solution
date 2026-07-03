@@ -1,5 +1,4 @@
-﻿
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 
 namespace CMS.Data.Entities
@@ -16,12 +15,15 @@ namespace CMS.Data.Entities
         [StringLength(500, ErrorMessage = "Mô tả tối đa 500 ký tự")]
         public string Description { get; set; }
 
-        // Quan hệ: Một danh mục có nhiều bài viết
+        // Bổ sung thuộc tính lưu đường dẫn ảnh
+        [StringLength(500)]
+        public string ImageUrl { get; set; }
+
         public virtual ICollection<Post> Posts { get; set; }
 
         public Category()
         {
-            Posts = new List<Post>(); // Tránh NullReferenceException
+            Posts = new List<Post>();
         }
     }
 }

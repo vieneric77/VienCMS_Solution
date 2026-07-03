@@ -1,6 +1,7 @@
 ﻿@model CMS.Data.Entities.Post
 @{
-    Layout = "_LayoutAdmin"; ViewData["Title"] = "Thêm bài viết mới";
+    Layout = "_LayoutAdmin";
+    ViewData["Title"] = "Thêm bài viết mới";
 }
 
 <div class="container mt-4">
@@ -39,6 +40,13 @@
 @section Scripts {
     <script src="https://cdn.ckeditor.com/ckeditor5/39.0.1/classic/ckeditor.js"></script>
     <script>
-        ClassicEditor.create(document.querySelector('#Content')).catch(error => { console.error(error); });
+        ClassicEditor
+            .create(document.querySelector('#Content'), {
+                // Cấu hình đường dẫn API để upload ảnh
+                ckfinder: {
+                    uploadUrl: '/Post/UploadImage'
+                }
+            })
+            .catch(error => { console.error(error); });
     </script>
 }

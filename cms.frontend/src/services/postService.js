@@ -1,6 +1,4 @@
-﻿
-
-const API_BASE_URL = 'https://localhost:7024';
+﻿const API_BASE_URL = 'https://localhost:7024';
 const POST_API = `${API_BASE_URL}/api/posts`;
 const CATEGORY_API = `${API_BASE_URL}/api/categories`;
 
@@ -33,14 +31,6 @@ export async function getAllPostCategories() {
 }
 
 export { API_BASE_URL };
-
-// ── Default export ──────────────────────────────────────────
-// Cho phép import theo 2 cách:
-//   import { getAllPosts } from '../services/postService';   (named)
-//   import postService from '../services/postService';       (default)
-//   postService.getAllPosts(...)
-// Một số file cũ của project import bằng tên "blogService" — vẫn dùng
-// đúng object này vì đó chỉ là tên biến cục bộ khi import, không phải tên export.
 const postService = {
     getAllPosts,
     getPostById,

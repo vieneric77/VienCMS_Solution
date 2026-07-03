@@ -28,6 +28,7 @@ namespace CMS.Backend.Controllers.Api
                 .ToList();
             return Ok(posts);
         }
+
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
@@ -49,6 +50,7 @@ namespace CMS.Backend.Controllers.Api
 
             return Ok(post);
         }
+
         [HttpGet("category/{categoryId}")]
         public IActionResult GetByCategory(int categoryId)
         {
@@ -65,6 +67,7 @@ namespace CMS.Backend.Controllers.Api
 
             return Ok(posts);
         }
+
         [HttpPost]
         public IActionResult Create([FromBody] Post model)
         {
@@ -85,35 +88,6 @@ namespace CMS.Backend.Controllers.Api
                 model.Title,
                 model.CreatedDate
             });
-        }
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] Post model)
-        {
-            ModelState.Remove("Category");
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var post = _context.Posts.Find(id);
-            if (post == null)
-                return NotFound(new { message = $"Không tìm thấy bài viết ID={id}" });
-
-            post.Title = model.Title;
-            post.Content = model.Content;
-            post.ImageUrl = model.ImageUrl;
-            post.CategoryId = model.CategoryId;
-            _context.SaveChanges();
-            return Ok(new { message = "Cập nhật thành công", post.Id, post.Title });
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var post = _context.Posts.Find(id);
-            if (post == null)
-                return NotFound(new { message = $"Không tìm thấy bài viết ID={id}" });
-
-            _context.Posts.Remove(post);
-            _context.SaveChanges();
-            return Ok(new { message = $"Đã xóa bài viết \"{post.Title}\"" });
         }
     }
 }

@@ -1,8 +1,7 @@
 ﻿import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { getActiveBanners } from '../../services/bannerService';
-
-const API_BASE_URL = 'https://localhost:7024';
+import { getActiveBanners } from '../services/bannerService';
+import { IMAGE_BASE_URL } from '../api/axiosClient';
 
 function HeroBanner() {
     const [banners, setBanners] = useState([]);
@@ -37,6 +36,12 @@ function HeroBanner() {
 
     const current = banners[activeIndex];
 
+    // Helper xử lý URL ảnh chuẩn hóa
+    const getImageUrl = (url) => {
+        if (!url) return '';
+        return url.startsWith('http') ? url : `${IMAGE_BASE_URL}${url}`;
+    };
+
     return (
         <div className="hero-banner-wrapper my-4 rounded-4 shadow-sm position-relative overflow-hidden"
             style={{ backgroundColor: '#e9ecef', color: '#2d3436' }}>
@@ -58,7 +63,7 @@ function HeroBanner() {
 
                     <div className="col-lg-6 text-center">
                         <img
-                            src={current.imageUrl?.startsWith('http') ? current.imageUrl : `${API_BASE_URL}${current.imageUrl}`}
+                            src={getImageUrl(current.imageUrl)}
                             alt={current.title}
                             className="img-fluid rounded-4 shadow-lg"
                             style={{ maxHeight: '400px', objectFit: 'cover' }}

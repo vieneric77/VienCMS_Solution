@@ -1,9 +1,9 @@
 ﻿import React from 'react';
 import { Link } from 'react-router-dom';
-
-const IMAGE_BASE_URL = process.env.REACT_APP_API_URL || "https://localhost:7024";
+import { IMAGE_BASE_URL } from '../api/axiosClient'; 
 
 function PostCard({ post }) {
+    // Sử dụng helper để xử lý URL ảnh
     const getImageUrl = (url) => {
         if (!url) return 'https://images.unsplash.com/photo-1544716278-ca5e3f4abd8c?q=80&w=500';
         return url.startsWith('http') ? url : `${IMAGE_BASE_URL}${url}`;

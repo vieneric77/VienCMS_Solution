@@ -1,5 +1,4 @@
-﻿
-using CMS.Data;
+﻿using CMS.Data;
 using CMS.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -12,6 +11,7 @@ namespace CMS.Backend.Controllers.Api
     {
         private readonly ApplicationDbContext _context;
         public CategoriesController(ApplicationDbContext context) => _context = context;
+
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -21,11 +21,13 @@ namespace CMS.Backend.Controllers.Api
                     c.Id,
                     c.Name,
                     c.Description,
+                    c.ImageUrl,
                     PostCount = c.Posts.Count()
                 })
                 .ToList();
             return Ok(categories);
         }
+
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
@@ -35,6 +37,7 @@ namespace CMS.Backend.Controllers.Api
                     c.Id,
                     c.Name,
                     c.Description,
+                    c.ImageUrl,
                     PostCount = c.Posts.Count()
                 })
                 .FirstOrDefault();
@@ -44,6 +47,7 @@ namespace CMS.Backend.Controllers.Api
 
             return Ok(category);
         }
+
         [HttpPost]
         public IActionResult Create([FromBody] Category model)
         {
@@ -58,50 +62,7 @@ namespace CMS.Backend.Controllers.Api
 
             _context.Categories.Add(model);
             _context.SaveChanges();
-            return CreatedAtAction(nameof(GetById), new { id = model.Id }, new
-            {
-                model.Id,
-                model.Name,
-                model.Description
-            });
-        }
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] Category model)
-        {
-            ModelState.Remove("Posts");
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
-
-            var category = _context.Categories.Find(id);
-            if (category == null)
-                return NotFound(new { message = $"Không tìm thấy danh mục ID={id}" });
-
-            bool isDuplicate = _context.Categories
-                .Any(c => c.Name.ToLower() == model.Name.ToLower() && c.Id != id);
-            if (isDuplicate)
-                return Conflict(new { message = "Tên danh mục đã tồn tại" });
-
-            category.Name = model.Name;
-            category.Description = model.Description;
-            _context.SaveChanges();
-            return Ok(new { message = "Cập nhật thành công", category.Id, category.Name });
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var category = _context.Categories
-                .Include(c => c.Posts)
-                .FirstOrDefault(c => c.Id == id);
-
-            if (category == null)
-                return NotFound(new { message = $"Không tìm thấy danh mục ID={id}" });
-
-            if (category.Posts != null && category.Posts.Any())
-                return BadRequest(new { message = $"Không thể xóa, đang có {category.Posts.Count} bài viết liên kết" });
-
-            _context.Categories.Remove(category);
-            _context.SaveChanges();
-            return Ok(new { message = $"Đã xóa danh mục \"{category.Name}\"" });
+            return CreatedAtAction(nameof(GetById), new { id = model.Id }, model);
         }
     }
 }

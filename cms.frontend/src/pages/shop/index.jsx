@@ -3,12 +3,12 @@ import { Link } from 'react-router-dom';
 import {
     getAllProducts,
     getAllProductCategories,
-    getProductsByPrice,
     API_BASE_URL
 } from '../../services/productService';
 import cartService from '../../services/cartService';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
+import CategoryMenu from '../../components/CategoryMenu'; // 1. Đã thêm import
 
 const PRIMARY_GREEN = '#00b894';
 
@@ -117,7 +117,7 @@ function ShopPage() {
                         <div style={{ position: 'sticky', top: '20px' }}>
                             <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', marginBottom: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
                                 <h5 style={{ fontSize: '16px', fontWeight: 'bold', color: PRIMARY_GREEN, marginBottom: '15px', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>Tìm kiếm</h5>
-                                <input type="text" className="form-control" placeholder="Nhập tên thiết bị..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: '8px' }} />
+                                <input type="text" className="form-control" placeholder="Nhập tên sản phẩm..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} style={{ borderRadius: '8px' }} />
                             </div>
 
                             <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', marginBottom: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
@@ -130,18 +130,13 @@ function ShopPage() {
                                 </form>
                             </div>
 
+                            {/* 2. Đã thay thế danh mục cũ bằng CategoryMenu */}
                             <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 4px 6px rgba(0,0,0,0.05)' }}>
-                                <h5 style={{ fontSize: '16px', fontWeight: 'bold', color: PRIMARY_GREEN, marginBottom: '15px', borderBottom: '2px solid #eee', paddingBottom: '10px' }}>Danh mục</h5>
-                                <ul style={{ listStyle: 'none', padding: 0 }}>
-                                    <li style={{ marginBottom: '10px' }}>
-                                        <button className="btn btn-link text-dark p-0 text-decoration-none" onClick={() => setActiveCategory('all')} style={{ fontWeight: activeCategory === 'all' ? 'bold' : 'normal', color: activeCategory === 'all' ? PRIMARY_GREEN : '#333' }}>Tất cả sản phẩm</button>
-                                    </li>
-                                    {categories.map(cat => (
-                                        <li key={cat.id || cat.categoryProductId} style={{ marginBottom: '10px' }}>
-                                            <button className="btn btn-link text-dark p-0 text-decoration-none" onClick={() => setActiveCategory(cat.id || cat.categoryProductId)} style={{ fontWeight: activeCategory === (cat.id || cat.categoryProductId) ? 'bold' : 'normal', color: activeCategory === (cat.id || cat.categoryProductId) ? PRIMARY_GREEN : '#333' }}>{cat.name}</button>
-                                        </li>
-                                    ))}
-                                </ul>
+                                <h5 style={{ fontSize: '16px', fontWeight: 'bold', color: PRIMARY_GREEN, marginBottom: '15px' }}>Danh mục</h5>
+                                <CategoryMenu
+                                    activeCategoryId={activeCategory === 'all' ? null : Number(activeCategory)}
+                                    onCategoryChange={(id) => setActiveCategory(id === null ? 'all' : id.toString())}
+                                />
                             </div>
                         </div>
                     </div>
@@ -173,7 +168,6 @@ function ShopPage() {
                     </div>
                 </div>
             </div>
-            <div style={{ height: '50px' }}></div>
             <Footer />
         </div>
     );
@@ -191,9 +185,7 @@ function ProductCard({ product }) {
     };
 
     return (
-        <div className="card h-100 border-0 rounded-4 shadow-sm overflow-hidden product-card"
-            style={{ transition: 'all 0.4s ease' }}>
-
+        <div className="card h-100 border-0 rounded-4 shadow-sm overflow-hidden product-card" style={{ transition: 'all 0.4s ease' }}>
             <div className="position-relative overflow-hidden bg-light" style={{ height: '220px' }}>
                 <Link to={`/product/${product.id}`}>
                     <img
@@ -203,62 +195,22 @@ function ProductCard({ product }) {
                         style={{ transition: 'transform 0.5s' }}
                     />
                 </Link>
-
                 {product.stockQuantity <= 5 && product.stockQuantity > 0 && (
-                    <span className="position-absolute top-0 start-0 m-2 badge bg-danger rounded-pill px-2">
-                        Còn {product.stockQuantity} sản phẩm
-                    </span>
-                )}
-
-                {product.stockQuantity === 0 && (
-                    <div className="position-absolute top-0 start-0 w-100 h-100 d-flex align-items-center justify-content-center bg-dark bg-opacity-50 text-white">
-                        HẾT HÀNG
-                    </div>
+                    <span className="position-absolute top-0 start-0 m-2 badge bg-danger rounded-pill px-2">Còn {product.stockQuantity}</span>
                 )}
             </div>
-
             <div className="card-body p-3 d-flex flex-column">
-                <small className="text-uppercase text-muted fw-bold" style={{ fontSize: '0.7rem' }}>
-                    {product.brand || "Viên Bookstore"}
-                </small>
-
                 <h6 className="card-title fw-bold text-truncate mt-1 mb-2" style={{ fontSize: '0.95rem' }}>
                     <Link to={`/product/${product.id}`} className="text-decoration-none text-dark">{product.name}</Link>
                 </h6>
-
-                <div className="fw-bold text-success mb-2" style={{ fontSize: '1.1rem' }}>
-                    {formatPrice(product.price)}
-                </div>
-
-                <div className="mb-3" style={{ fontSize: '0.85rem', color: product.stockQuantity < 5 ? '#d63031' : '#6c757d' }}>
-                    Số lượng còn: <span className="fw-bold">{product.stockQuantity}</span>
-                </div>
-
+                <div className="fw-bold text-success mb-2" style={{ fontSize: '1.1rem' }}>{formatPrice(product.price)}</div>
                 <div className="mt-auto d-flex gap-2">
-                    <Link to={`/product/${product.id}`}
-                        className="btn btn-outline-dark btn-sm flex-fill rounded-pill py-2"
-                        style={{ fontSize: '0.8rem' }}>
-                        Chi tiết
-                    </Link>
-
-                    <button onClick={handleAddToCartClick}
-                        disabled={product.stockQuantity === 0}
-                        className="btn btn-dark btn-sm flex-fill rounded-pill py-2"
-                        style={{ fontSize: '0.8rem', backgroundColor: product.stockQuantity === 0 ? '#ccc' : '#00b894', border: 'none' }}>
-                        <i className="fas fa-shopping-cart me-1"></i> Mua
+                    <Link to={`/product/${product.id}`} className="btn btn-outline-dark btn-sm flex-fill rounded-pill py-2">Chi tiết</Link>
+                    <button onClick={handleAddToCartClick} disabled={product.stockQuantity === 0} className="btn btn-dark btn-sm flex-fill rounded-pill py-2" style={{ backgroundColor: '#00b894', border: 'none' }}>
+                        Mua
                     </button>
                 </div>
             </div>
-
-            <style>{`
-                .product-card:hover {
-                    box-shadow: 0 10px 20px rgba(0,0,0,0.15) !important;
-                    transform: translateY(-5px);
-                }
-                .product-card:hover .product-image {
-                    transform: scale(1.05);
-                }
-            `}</style>
         </div>
     );
 }

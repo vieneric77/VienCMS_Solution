@@ -2,7 +2,9 @@
 import { useParams, Link } from 'react-router-dom';
 import postService from '../../services/postService';
 import Header from '../../components/Header';
-import Footer from '../../components/Footer'; 
+import Footer from '../../components/Footer';
+// Import hằng số cấu hình từ file trung tâm
+import { IMAGE_BASE_URL } from '../../api/axiosClient';
 
 const ACCENT = '#00b894';
 const NAVY = '#0D2C54';
@@ -12,7 +14,17 @@ function PostDetail() {
     const [post, setPost] = useState(null);
     const [loading, setLoading] = useState(true);
 
-    const IMAGE_BASE_URL = process.env.REACT_APP_API_URL || "https://localhost:7024";
+    // Xử lý thay thế đường dẫn ảnh trong nội dung HTML
+    const processHtmlContent = (htmlContent) => {
+        if (!htmlContent) return "";
+        return htmlContent.replace(/src="\/uploads\//g, `src="${IMAGE_BASE_URL}/uploads/`);
+    };
+
+    // Helper xử lý ảnh thumbnail ngoài
+    const getImageUrl = (url) => {
+        if (!url) return "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800";
+        return url.startsWith('http') ? url : `${IMAGE_BASE_URL}${url}`;
+    };
 
     useEffect(() => {
         const fetchPostDetail = async () => {
@@ -30,16 +42,6 @@ function PostDetail() {
         if (id) fetchPostDetail();
     }, [id]);
 
-    const formatDate = (dateString) => {
-        if (!dateString) return "";
-        const date = new Date(dateString);
-        return date.toLocaleDateString('vi-VN', {
-            day: '2-digit',
-            month: '2-digit',
-            year: 'numeric'
-        });
-    };
-
     if (loading) {
         return (
             <div className="container my-5 text-center py-5">
@@ -52,7 +54,7 @@ function PostDetail() {
     if (!post) {
         return (
             <div className="container my-5 text-center py-5">
-                <div className="alert alert-danger">Cuốn sách hoặc bài viết này không tìm thấy trong kệ.</div>
+                <div className="alert alert-danger">Cuốn sách hoặc bài viết này không tìm thấy.</div>
                 <Link to="/" className="btn btn-dark mt-2">Quay lại thư viện</Link>
             </div>
         );
@@ -60,52 +62,37 @@ function PostDetail() {
 
     return (
         <div style={{ backgroundColor: '#fdfdfd' }}>
+            <style>{`
+                .post-content img {
+                    max-width: 100%;
+                    height: auto;
+                    display: block;
+                    margin: 20px auto;
+                    border-radius: 8px;
+                    box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+                }
+            `}</style>
+
             <Header />
             <div className="container my-5" style={{ maxWidth: '800px' }}>
-                <nav aria-label="breadcrumb" className="mb-4">
-                    <ol className="breadcrumb bg-transparent p-0 small">
-                        <li className="breadcrumb-item"><Link to="/" className="text-decoration-none text-muted">Trang chủ</Link></li>
-                        <li className="breadcrumb-item"><Link to="/blog" className="text-decoration-none text-muted">Góc Đọc Sách</Link></li>
-                        <li className="breadcrumb-item active text-dark fw-bold" aria-current="page">Nội dung chi tiết</li>
-                    </ol>
-                </nav>
-
                 <article className="blog-post-detail">
-                    <span className="badge text-uppercase font-weight-bold px-2 py-1 mb-2 text-white"
-                        style={{ backgroundColor: ACCENT, fontSize: '11px' }}>
-                        <i className="fas fa-book-open mr-1"></i> {post.category?.name || post.categoryName || "Review Sách"}
-                    </span>
+                    <h1 className="font-weight-bold mb-4" style={{ color: NAVY, fontSize: '2.5rem' }}>{post.title}</h1>
 
-                    <h1 className="font-weight-bold mb-3" style={{ color: NAVY, fontSize: '2.2rem', lineHeight: '1.3' }}>
-                        {post.title}
-                    </h1>
-
-                    <div className="post-meta d-flex text-muted mb-4 pb-3 border-bottom" style={{ fontSize: '13px' }}>
-                        <span className="mr-3">
-                            <i className="far fa-calendar-alt mr-1" style={{ color: ACCENT }}></i> Xuất bản: {formatDate(post.createdDate)}
-                        </span>
-                    </div>
-
-                    <div className="post-thumbnail-wrapper mb-4 rounded overflow-hidden shadow-sm" style={{ maxHeight: '400px' }}>
+                    <div className="post-thumbnail-wrapper mb-4 overflow-hidden rounded">
                         <img
-                            src={post.imageUrl ? (post.imageUrl.startsWith('http') ? post.imageUrl : `${IMAGE_BASE_URL}${post.imageUrl}`) : "https://images.unsplash.com/photo-1512820790803-83ca734da794?w=800"}
+                            src={getImageUrl(post.imageUrl)}
                             alt={post.title}
                             className="img-fluid w-100"
-                            style={{ objectFit: 'cover', height: '100%', maxHeight: '400px' }}
+                            style={{ maxHeight: '450px', objectFit: 'cover' }}
                         />
                     </div>
 
-                    <div className="post-content text-dark text-justify"
-                        style={{ fontSize: '16px', lineHeight: '1.8', whiteSpace: 'pre-line', color: '#212529' }}>
-                        {post.content}
-                    </div>
+                    <div
+                        className="post-content text-dark text-justify"
+                        style={{ fontSize: '17px', lineHeight: '1.8' }}
+                        dangerouslySetInnerHTML={{ __html: processHtmlContent(post.content) }}
+                    />
                 </article>
-
-                <div className="mt-5 pt-4 border-top text-center">
-                    <Link to="/blog" className="btn btn-outline-secondary px-4 font-weight-bold" style={{ borderRadius: '4px' }}>
-                        <i className="fas fa-book mr-2"></i> QUAY LẠI 
-                    </Link>
-                </div>
             </div>
             <Footer />
         </div>

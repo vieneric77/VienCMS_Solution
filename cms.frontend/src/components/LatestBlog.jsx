@@ -1,6 +1,6 @@
 ﻿import React, { useState, useEffect } from 'react';
-import blogService from '../../services/postService';
-import PostCard from '../../components/PostCard';
+import blogService from '../services/postService';
+import PostCard from './PostCard';
 
 function LatestBlog() {
     const [posts, setPosts] = useState([]);

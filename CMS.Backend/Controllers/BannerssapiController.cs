@@ -10,6 +10,7 @@ namespace CMS.Backend.Controllers.Api
     {
         private readonly ApplicationDbContext _context;
         public BannersController(ApplicationDbContext context) => _context = context;
+
         [HttpGet("active")]
         public IActionResult GetActiveBanners()
         {
@@ -27,6 +28,7 @@ namespace CMS.Backend.Controllers.Api
 
             return Ok(banners);
         }
+
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -35,6 +37,7 @@ namespace CMS.Backend.Controllers.Api
                 .ToList();
             return Ok(banners);
         }
+
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
@@ -43,6 +46,7 @@ namespace CMS.Backend.Controllers.Api
                 return NotFound(new { message = $"Không tìm thấy banner ID={id}" });
             return Ok(banner);
         }
+
         [HttpPost]
         public IActionResult Create([FromBody] Banner model)
         {
@@ -54,25 +58,7 @@ namespace CMS.Backend.Controllers.Api
             _context.SaveChanges();
             return CreatedAtAction(nameof(GetById), new { id = model.Id }, model);
         }
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] Banner model)
-        {
-            if (!ModelState.IsValid)
-                return BadRequest(ModelState);
 
-            var banner = _context.Banners.Find(id);
-            if (banner == null)
-                return NotFound(new { message = $"Không tìm thấy banner ID={id}" });
-
-            banner.Title = model.Title;
-            banner.LinkUrl = model.LinkUrl;
-            banner.ImageUrl = model.ImageUrl;
-            banner.DisplayOrder = model.DisplayOrder;
-            banner.IsActive = model.IsActive;
-
-            _context.SaveChanges();
-            return Ok(new { message = "Cập nhật thành công", banner.Id, banner.Title });
-        }
         [HttpPatch("{id}/toggle-active")]
         public IActionResult ToggleActive(int id)
         {
@@ -83,17 +69,6 @@ namespace CMS.Backend.Controllers.Api
             banner.IsActive = !banner.IsActive;
             _context.SaveChanges();
             return Ok(new { message = "Đã cập nhật trạng thái", banner.Id, banner.IsActive });
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var banner = _context.Banners.Find(id);
-            if (banner == null)
-                return NotFound(new { message = $"Không tìm thấy banner ID={id}" });
-
-            _context.Banners.Remove(banner);
-            _context.SaveChanges();
-            return Ok(new { message = $"Đã xóa banner \"{banner.Title}\"" });
         }
     }
 }

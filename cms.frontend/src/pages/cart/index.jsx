@@ -1,10 +1,11 @@
 ﻿import React, { useState, useEffect } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import axios from 'axios';
 import Header from '../../components/Header';
 import Footer from '../../components/Footer';
-
-const IMAGE_BASE_URL = process.env.REACT_APP_API_URL || "https://localhost:7024";
+// Import hằng số cấu hình tập trung
+import { IMAGE_BASE_URL } from '../../api/axiosClient';
+// Import service để kiểm tra tồn kho (giả sử bạn có service này)
+import productService from '../../services/productService';
 
 function CartPage() {
     const [cartItems, setCartItems] = useState([]);
@@ -19,11 +20,30 @@ function CartPage() {
         setCartItems(storedCart);
     }, []);
 
-    const updateQuantity = (productId, newQty) => {
+    // Cập nhật số lượng với kiểm tra tồn kho
+    const updateQuantity = async (productId, newQty) => {
         if (newQty < 1) return;
-        const updated = cartItems.map(item => item.productId === productId ? { ...item, quantity: newQty } : item);
-        setCartItems(updated);
-        localStorage.setItem('cart', JSON.stringify(updated));
+
+        try {
+            // Kiểm tra tồn kho từ Server/Service để đảm bảo chính xác
+            const product = await productService.getProductById(productId);
+            const cleanProduct = product?.$values ? product.$values[0] : product;
+
+            if (newQty > cleanProduct.stockQuantity) {
+                alert(`Không thể cập nhật! Sản phẩm chỉ còn ${cleanProduct.stockQuantity} trong kho.`);
+                return;
+            }
+
+            const updated = cartItems.map(item =>
+                item.productId === productId ? { ...item, quantity: newQty } : item
+            );
+            setCartItems(updated);
+            localStorage.setItem('cart', JSON.stringify(updated));
+            window.dispatchEvent(new Event('storage'));
+        } catch (error) {
+            console.error("Lỗi kiểm tra tồn kho:", error);
+            alert("Có lỗi xảy ra khi kiểm tra tồn kho, vui lòng thử lại.");
+        }
     };
 
     const removeItem = (productId, productName) => {
@@ -122,7 +142,7 @@ function CartPage() {
                                     </div>
                                 ) : (
                                     <div className="text-center py-3">
-                                        <div className="alert alert-warning small mb-4">Vui lòng đăng nhập để hoàn tất đơn hàng. Đơn hàng sẽ được lưu vào tài khoản của bạn.</div>
+                                        <div className="alert alert-warning small mb-4">Vui lòng đăng nhập để hoàn tất đơn hàng.</div>
                                         <Link to="/login" className="btn btn-dark btn-block font-weight-bold py-2" style={{ borderRadius: '50px' }}>Đăng nhập</Link>
                                     </div>
                                 )}

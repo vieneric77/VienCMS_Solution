@@ -1,7 +1,11 @@
 ﻿import axios from 'axios';
 
+// Cấu hình các hằng số từ file .env
+export const API_BASE_URL = process.env.REACT_APP_API_URL || 'https://localhost:7024/api';
+export const IMAGE_BASE_URL = process.env.REACT_APP_IMAGE_BASE_URL || 'https://localhost:7024';
+
 const axiosClient = axios.create({
-    baseURL: process.env.REACT_APP_API_URL || 'https://localhost:7024/api',
+    baseURL: API_BASE_URL,
     headers: {
         'Content-Type': 'application/json',
     },

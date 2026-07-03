@@ -19,6 +19,7 @@ namespace CMS.Backend.Controllers.Api
             var bytes = sha256.ComputeHash(Encoding.UTF8.GetBytes(password));
             return Convert.ToBase64String(bytes);
         }
+
         [HttpGet]
         public IActionResult GetAll()
         {
@@ -33,6 +34,7 @@ namespace CMS.Backend.Controllers.Api
                 .ToList();
             return Ok(users);
         }
+
         [HttpGet("{id}")]
         public IActionResult GetById(int id)
         {
@@ -51,6 +53,7 @@ namespace CMS.Backend.Controllers.Api
 
             return Ok(user);
         }
+
         [HttpPost]
         public IActionResult Create([FromBody] CreateUserRequest request)
         {
@@ -83,53 +86,13 @@ namespace CMS.Backend.Controllers.Api
                 user.Role
             });
         }
-        [HttpPut("{id}")]
-        public IActionResult Update(int id, [FromBody] UpdateUserRequest request)
-        {
-            var user = _context.Users.Find(id);
-            if (user == null)
-                return NotFound(new { message = $"Không tìm thấy người dùng ID={id}" });
-
-            bool isDuplicate = _context.Users
-                .Any(u => u.Username.ToLower() == request.Username.ToLower() && u.Id != id);
-            if (isDuplicate)
-                return Conflict(new { message = "Tên đăng nhập đã tồn tại" });
-
-            user.Username = request.Username;
-            user.FullName = request.FullName;
-            user.Role = request.Role;
-
-            if (!string.IsNullOrWhiteSpace(request.NewPassword))
-                user.PasswordHash = HashPassword(request.NewPassword);
-
-            _context.SaveChanges();
-            return Ok(new { message = "Cập nhật thành công", user.Id, user.Username, user.FullName });
-        }
-        [HttpDelete("{id}")]
-        public IActionResult Delete(int id)
-        {
-            var user = _context.Users.Find(id);
-            if (user == null)
-                return NotFound(new { message = $"Không tìm thấy người dùng ID={id}" });
-
-            _context.Users.Remove(user);
-            _context.SaveChanges();
-            return Ok(new { message = $"Đã xóa người dùng \"{user.FullName}\"" });
-        }
     }
+
     public class CreateUserRequest
     {
         public string Username { get; set; }
         public string Password { get; set; }
         public string FullName { get; set; }
         public string Role { get; set; }
-    }
-
-    public class UpdateUserRequest
-    {
-        public string Username { get; set; }
-        public string FullName { get; set; }
-        public string Role { get; set; }
-        public string? NewPassword { get; set; }
     }
 }

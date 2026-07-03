@@ -1,7 +1,8 @@
 ﻿using CMS.Data;
 using CMS.Data.Entities;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization; 
+using Microsoft.AspNetCore.Authorization;
+using Microsoft.EntityFrameworkCore;
 
 namespace CMS.Backend.Controllers
 
@@ -12,7 +13,11 @@ namespace CMS.Backend.Controllers
 
         public IActionResult Index()
         {
-            var categories = _context.Categories.ToList();
+            var categories = _context.Categories
+                             .Include(c => c.Posts)
+                             .OrderBy(c => c.Name)
+                             .ToList();
+
             return View(categories);
         }
         public IActionResult Create()

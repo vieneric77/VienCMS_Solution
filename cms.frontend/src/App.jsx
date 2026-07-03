@@ -15,6 +15,9 @@ import RegisterPage from './pages/register/index';
 import CartPage from './pages/cart/index';
 import CustomerProfilePage from './pages/profile';
 import ForgotPasswordPage from './pages/login/ForgotPassword';
+import VerifyOtp from './pages/login/VerifyOtp';
+import ResetPassword from './pages/login/ResetPassword';
+import SearchPage from './pages/search/SearchPage';
 function App() {
     return (
         <Router>
@@ -34,6 +37,9 @@ function App() {
                         <Route path="/cart" element={<CartPage />} />
                         <Route path="/profile" element={<CustomerProfilePage />} />
                         <Route path="/forgot-password" element={<ForgotPasswordPage />} />
+                        <Route path="/login/verify-otp" element={<VerifyOtp />} />
+                        <Route path="/login/reset-password" element={<ResetPassword />} />
+                        <Route path="/search" element={<SearchPage />} />
                         <Route path="*" element={
                             <div className="container text-center py-5 my-5">
                                 <img

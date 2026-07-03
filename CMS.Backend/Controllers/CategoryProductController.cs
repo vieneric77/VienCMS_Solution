@@ -8,11 +8,14 @@ namespace CMS.Backend.Controllers
     public class CategoryProductController : Controller
     {
         private readonly ApplicationDbContext _context;
+        private readonly IWebHostEnvironment _env; // Cần dùng để xác định đường dẫn thư mục
 
-        public CategoryProductController(ApplicationDbContext context)
+        public CategoryProductController(ApplicationDbContext context, IWebHostEnvironment env)
         {
             _context = context;
+            _env = env;
         }
+
         public IActionResult Index()
         {
             var categories = _context.CategoriesProducts
@@ -21,126 +24,86 @@ namespace CMS.Backend.Controllers
                 .ToList();
             return View(categories);
         }
-        public IActionResult Create()
-        {
-            return View();
-        }
+
+        public IActionResult Create() => View();
+
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Create(CategoryProduct model)
+        public async Task<IActionResult> Create(CategoryProduct model, IFormFile? ImageFile)
         {
             ModelState.Remove("Products");
+            if (!ModelState.IsValid) return View(model);
 
-            if (!ModelState.IsValid)
-                return View(model);
-
-            bool isDuplicate = _context.CategoriesProducts
-                .Any(c => c.Name.ToLower() == model.Name.ToLower());
-
-            if (isDuplicate)
+            // Xử lý upload ảnh
+            if (ImageFile != null && ImageFile.Length > 0)
             {
-                ModelState.AddModelError("Name", "Tên danh mục này đã tồn tại");
-                return View(model);
+                model.ImageUrl = await SaveImage(ImageFile);
             }
 
-            try
-            {
-                _context.CategoriesProducts.Add(model);
-                _context.SaveChanges();
-                TempData["SuccessMessage"] = $"Đã thêm danh mục \"{model.Name}\" thành công!";
-                return RedirectToAction("Index");
-            }
-            catch (Exception)
-            {
-                ModelState.AddModelError("", "Đã xảy ra lỗi khi lưu dữ liệu. Vui lòng thử lại.");
-                return View(model);
-            }
+            _context.CategoriesProducts.Add(model);
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = $"Đã thêm danh mục \"{model.Name}\" thành công!";
+            return RedirectToAction("Index");
         }
+
         public IActionResult Edit(int id)
         {
             var category = _context.CategoriesProducts.Find(id);
-            if (category == null)
-            {
-                TempData["ErrorMessage"] = "Không tìm thấy danh mục cần sửa.";
-                return RedirectToAction("Index");
-            }
-            return View(category);
+            return category == null ? NotFound() : View(category);
         }
 
         [HttpPost]
         [ValidateAntiForgeryToken]
-        public IActionResult Edit(int id, CategoryProduct model)
+        public async Task<IActionResult> Edit(int id, CategoryProduct model, IFormFile? ImageFile)
         {
-            if (id != model.Id)
-                return BadRequest();
-
+            if (id != model.Id) return BadRequest();
             ModelState.Remove("Products");
+            if (!ModelState.IsValid) return View(model);
 
-            if (!ModelState.IsValid)
-                return View(model);
+            var category = _context.CategoriesProducts.Find(id);
+            if (category == null) return NotFound();
 
-            bool isDuplicate = _context.CategoriesProducts
-                .Any(c => c.Name.ToLower() == model.Name.ToLower() && c.Id != id);
+            // Cập nhật thông tin
+            category.Name = model.Name;
+            category.Description = model.Description;
 
-            if (isDuplicate)
+            // Nếu có chọn ảnh mới thì lưu đè
+            if (ImageFile != null && ImageFile.Length > 0)
             {
-                ModelState.AddModelError("Name", "Tên danh mục này đã tồn tại");
-                return View(model);
+                category.ImageUrl = await SaveImage(ImageFile);
             }
 
-            try
-            {
-                var category = _context.CategoriesProducts.Find(id);
-                if (category == null)
-                {
-                    TempData["ErrorMessage"] = "Không tìm thấy danh mục cần sửa.";
-                    return RedirectToAction("Index");
-                }
-
-                category.Name = model.Name;
-                category.Description = model.Description;
-
-                _context.SaveChanges();
-                TempData["SuccessMessage"] = $"Đã cập nhật danh mục \"{model.Name}\" thành công!";
-                return RedirectToAction("Index");
-            }
-            catch (Exception)
-            {
-                ModelState.AddModelError("", "Đã xảy ra lỗi khi lưu dữ liệu. Vui lòng thử lại.");
-                return View(model);
-            }
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = $"Đã cập nhật \"{model.Name}\" thành công!";
+            return RedirectToAction("Index");
         }
+
+        // Hàm bổ trợ lưu ảnh
+        private async Task<string> SaveImage(IFormFile imageFile)
+        {
+            string fileName = Guid.NewGuid().ToString() + Path.GetExtension(imageFile.FileName);
+            string uploadPath = Path.Combine(_env.WebRootPath, "images");
+
+            if (!Directory.Exists(uploadPath)) Directory.CreateDirectory(uploadPath);
+
+            string filePath = Path.Combine(uploadPath, fileName);
+            using (var stream = new FileStream(filePath, FileMode.Create))
+            {
+                await imageFile.CopyToAsync(stream);
+            }
+            return "/images/" + fileName;
+        }
+
         [HttpPost]
         [ValidateAntiForgeryToken]
         public IActionResult Delete(int id)
         {
-            try
-            {
-                var category = _context.CategoriesProducts
-                    .Include(c => c.Products)
-                    .FirstOrDefault(c => c.Id == id);
+            var category = _context.CategoriesProducts.Include(c => c.Products).FirstOrDefault(c => c.Id == id);
+            if (category == null) return NotFound();
 
-                if (category == null)
-                {
-                    TempData["ErrorMessage"] = "Không tìm thấy danh mục cần xóa.";
-                    return RedirectToAction("Index");
-                }
-
-                if (category.Products != null && category.Products.Any())
-                {
-                    TempData["ErrorMessage"] = $"Không thể xóa danh mục \"{category.Name}\" vì đang có {category.Products.Count} sản phẩm liên kết.";
-                    return RedirectToAction("Index");
-                }
-
-                _context.CategoriesProducts.Remove(category);
-                _context.SaveChanges();
-                TempData["SuccessMessage"] = $"Đã xóa danh mục \"{category.Name}\" thành công!";
-            }
-            catch (Exception)
-            {
-                TempData["ErrorMessage"] = "Đã xảy ra lỗi khi xóa. Vui lòng thử lại.";
-            }
-
+            _context.CategoriesProducts.Remove(category);
+            _context.SaveChanges();
+            TempData["SuccessMessage"] = "Đã xóa thành công!";
             return RedirectToAction("Index");
         }
     }
